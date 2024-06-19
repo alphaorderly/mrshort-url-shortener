@@ -1,0 +1,110 @@
+<section class='flex flex-wrap justify-center items-start size-full'>
+  <p class="hidden" id="target_url">{{targetUrl}}</p>
+  <div class='flex flex-col gap-5 mt-5 sm:gap-10 sm:mt-20 w-[90%] lg:w-auto'>
+    <h1 class='text-xl sm:text-2xl font-bold'>URL 줄이기</h1>
+    <div>
+      <input
+        type='text'
+        class='w-full sm:w-64 p-2 border border-gray-300 rounded-lg'
+        placeholder='URL을 입력하세요.'
+        id='url'
+      />
+      <button class='mt-2 w-full sm:w-auto sm:mt-0 p-2 bg-blue-500 text-white rounded-lg'>줄이기</button>
+    </div>
+    <div id="original_shorten"></div>
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              원본 URL
+            </th>
+            <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              줄인 URL
+            </th>
+            <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              
+            </th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          {{#each shortenedURLs}}
+            <tr>
+              <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500 max-w-xs overflow-x-scroll">
+                <a href={{this.originalURL}}>{{this.originalURL}}</a>
+              </td>
+              <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
+                <a class="cursor-pointer" onclick='copyToClipboard(event, "{{this.shortenedURL}}")'>{{this.shortenedURL}}</a>
+              </td>
+              <td class="px-4 py-2 whitespace-nowrap text-right text-sm font-medium cursor-pointer">
+                <a class="text-red-600 hover:text-indigo-900" onclick='removeArticle(event, "{{this.id}}")'>삭제하기</a>
+              </td>
+            </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </div>
+</section>
+
+<script>
+  let url = document.getElementById('url');
+  let button = document.querySelector('button');
+  let targetUrl = document.getElementById('target_url').innerText;
+
+  function copyToClipboard(event, url) {
+    event.preventDefault(); // Prevent default anchor behavior
+    navigator.clipboard.writeText(url).then(function() {
+      alert('URL이 복사되었습니다.');
+    }, function(err) {
+      alert('URL 복사에 실패했습니다.');
+    });
+  } 
+
+  function removeArticle(event, id) {
+    event.preventDefault();
+    fetch(`/${id}`, {
+      method: 'DELETE',
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        alert(data);
+      }).catch((data) => {
+        alert(data);
+      }).finally(() => {
+        location.reload();
+      });
+  }
+
+  function shortenUrl() {
+    if (!url.value) {
+      alert('URL을 입력하세요.');
+      return;
+    }
+
+    fetch('/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ url: url.value }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        const { originalURL, shortenedURL } = data;
+        document.getElementById('original_shorten').innerHTML = `
+          <div class='flex flex-col gap-5'>
+            <div>
+              <span class='font-bold'>원본 URL:</span>
+              <a href='${originalURL}' target='_blank'>${originalURL}</a>
+            </div>
+            <div>
+              <span class='font-bold'>줄인 URL:</span>
+              <a class="cursor-pointer" onclick='copyToClipboard(event, "${targetUrl}${shortenedURL}")'>${targetUrl}${shortenedURL}</a>
+            </div>
+          </div>
+        `;
+      })};
+  
+    button.addEventListener('click', shortenUrl);
+
+</script>
