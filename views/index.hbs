@@ -1,6 +1,7 @@
 <section class='flex flex-wrap justify-center items-start size-full'>
   <p class="hidden" id="target_url">{{targetUrl}}</p>
   <div class='flex flex-col gap-5 mt-5 sm:gap-10 sm:mt-20 w-[90%] lg:w-auto'>
+    <button id="logout_button" class='p-2 bg-red-900 text-white rounded-lg font-bold text-xl'>로그아웃</button>
     <h1 class='text-xl sm:text-2xl font-bold'>URL 줄이기</h1>
     <div>
       <input
@@ -9,7 +10,7 @@
         placeholder='URL을 입력하세요.'
         id='url'
       />
-      <button class='mt-2 w-full sm:w-auto sm:mt-0 p-2 bg-blue-500 text-white rounded-lg'>줄이기</button>
+      <butto id="shorten_button" class='mt-2 w-full sm:w-auto sm:mt-0 p-2 bg-blue-500 text-white rounded-lg'>줄이기</button>
     </div>
     <div id="original_shorten"></div>
     <div class="overflow-x-auto">
@@ -48,8 +49,9 @@
 
 <script>
   let url = document.getElementById('url');
-  let button = document.querySelector('button');
+  let button = document.getElementById('shorten_button');
   let targetUrl = document.getElementById('target_url').innerText;
+  let logoutButton = document.getElementById('logout_button');
 
   function copyToClipboard(event, url) {
     event.preventDefault(); // Prevent default anchor behavior
@@ -104,7 +106,13 @@
           </div>
         `;
       })};
+
+    function logout() {
+      console.log('logout');
+      location.href = '/auth/logout'
+    }
   
     button.addEventListener('click', shortenUrl);
+    logoutButton.addEventListener('click', logout);
 
 </script>

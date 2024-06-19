@@ -1,6 +1,7 @@
-import { Controller, Post, Body, Res } from '@nestjs/common';
+import { Controller, Post, Body, Res, Get, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Response } from 'express';
+import { JwtAuthGuard } from './jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -21,6 +22,13 @@ export class AuthController {
 
     const token = await this.authService.login(user);
     res.cookie('jwt', token.access_token, { httpOnly: true });
+    res.redirect('/');
+  }
+
+  @Get('logout')
+  @UseGuards(JwtAuthGuard)
+  async logout(@Res() res: Response) {
+    res.clearCookie('jwt');
     res.redirect('/');
   }
 }
