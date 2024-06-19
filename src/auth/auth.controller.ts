@@ -2,13 +2,14 @@ import { Controller, Post, Body, Res, Get, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Response } from 'express';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import LoginBodyDto from './dtos/loginBody.dto';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('login')
-  async login(@Body() body, @Res() res: Response) {
+  async login(@Body() body: LoginBodyDto, @Res() res: Response) {
     const hashedPassword = this.authService.hashPassword(body.password);
 
     const user = await this.authService.validateUser(
