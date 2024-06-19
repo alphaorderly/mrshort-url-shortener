@@ -33,3 +33,9 @@ TARGET_URL={{url}}
 - TARGET_URL : http://localhost:3000/
   - 끝에 반드시 / 포함
 - SECRET과 SALT는 웹에서 JWT SECRET GENERATOR 같이 검색하면 많이 나옵니다.
+
+---
+
+## 추가 기능
+
+- URL 모니터링 관련 기능
