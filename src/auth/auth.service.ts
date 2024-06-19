@@ -25,6 +25,21 @@ export class AuthService {
     return this.userRepository.findOne({ where: { username, password } });
   }
 
+  async register(
+    username: string,
+    password: string,
+  ): Promise<User | undefined> {
+    const user = this.userRepository.create({
+      username,
+      password: this.hashPassword(password),
+    });
+    return this.userRepository.save(user);
+  }
+
+  async findAll(): Promise<User[]> {
+    return this.userRepository.find();
+  }
+
   async login(user: User) {
     const payload = { username: user.username, sub: user.id };
     return {

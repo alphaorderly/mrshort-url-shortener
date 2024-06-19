@@ -61,8 +61,4 @@ export class AppService {
 
     return removedShortenedURL;
   }
-
-  getHello(): string {
-    return 'Hello World!';
-  }
 }
