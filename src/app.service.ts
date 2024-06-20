@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { Shorten } from './entities/shorten.entity';
 import { InjectRedis } from '@liaoliaots/nestjs-redis';
 import { Redis } from 'ioredis';
+import { Click } from './entities/click.entity';
 
 @Injectable()
 export class AppService {
@@ -13,6 +14,8 @@ export class AppService {
     private userRepository: Repository<User>,
     @InjectRepository(Shorten)
     private shortenRepository: Repository<Shorten>,
+    @InjectRepository(Click)
+    private clickRepository: Repository<Click>,
     @InjectRedis('Redis')
     private redis: Redis,
   ) {}
@@ -21,6 +24,7 @@ export class AppService {
     let uniqueShortenedURL = false;
     let shortenedURLString = '';
     const shortenedURL = new Shorten();
+
     shortenedURL.originalURL = originalURL;
     shortenedURL.userID = userID;
 
@@ -59,11 +63,32 @@ export class AppService {
         return null;
       }
 
-      this.redis.set(shortenedURL, shortenedURLData.originalURL, 'EX', 60 * 60);
+      this.redis.set(
+        shortenedURL,
+        JSON.stringify({
+          originalURL: shortenedURLData.originalURL,
+          shortenID: shortenedURLData.id,
+        }),
+        'EX',
+        60 * 60,
+      );
+
+      const click = new Click();
+      click.shorten = shortenedURLData.id;
+      click.clickDate = new Date();
+      this.clickRepository.save(click);
+
       return shortenedURLData.originalURL;
     }
 
-    return redisOriginal;
+    const redisData = JSON.parse(redisOriginal);
+
+    const click = new Click();
+    click.shorten = redisData.shortenID;
+    click.clickDate = new Date();
+    this.clickRepository.save(click);
+
+    return redisData.originalURL;
   }
 
   async getAllShortenedURLs(userID: number): Promise<Shorten[]> {

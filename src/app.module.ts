@@ -9,6 +9,7 @@ import { User } from './auth/entities/user.entity';
 import { postgresConfig } from './postgresConfig';
 import { RedisModule } from '@liaoliaots/nestjs-redis';
 import { redisConfig } from './redisConfig';
+import { Click } from './entities/click.entity';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { redisConfig } from './redisConfig';
     TypeOrmModule.forRoot(postgresConfig),
     RedisModule.forRoot(redisConfig),
     AuthModule,
-    TypeOrmModule.forFeature([User, Shorten]),
+    TypeOrmModule.forFeature([User, Shorten, Click]),
   ],
   controllers: [AppController],
   providers: [AppService],
