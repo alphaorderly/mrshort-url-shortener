@@ -5,7 +5,6 @@ import { join } from 'path';
 import { UnauthorizedExceptionFilter } from './filter/unauthorized-exception.filter';
 import cookieParser from 'cookie-parser';
 import { AuthService } from './auth/auth.service';
-import prompts from 'prompts';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -18,27 +17,15 @@ async function bootstrap() {
   const users = await authService.findAll();
 
   if (users.length === 0) {
-    try {
-      const questions = [
-        {
-          type: 'text',
-          name: 'username',
-          message: '아이디 입력:',
-        },
-        {
-          type: 'password',
-          name: 'password',
-          message: '비밀번호 입력:',
-        },
-      ];
+    const id = process.env.ID;
+    const pw = process.env.PW;
 
-      const answers = await prompts(questions);
-
-      await authService.register(answers.username, answers.password);
-      console.log('User created successfully!');
-    } catch (error) {
-      console.error('Error during user creation prompt:', error);
+    if (!id || !pw) {
+      console.log('ID와 PW를 입력해주세요.');
+      return;
     }
+
+    authService.register(id, pw);
   }
 
   app.setViewEngine('hbs');

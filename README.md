@@ -6,35 +6,67 @@
 
 ## 배포법
 
+- 도커를 사용합니다.
+
 ```
-yarn
-yarn start
+version: '3.8'
+services:
+  app:
+    image: ilov1112/url-shortener-alpha:latest
+    ports:
+      - '6824:3000'
+    environment:
+      - JWT_SECRET=ea28f835f9be0be2bbc35481ca04543d88ef2474e9500a7baacb6109d4ff7132abba86bdc14f62c6739cff536a042132f0892a668a2750c9b8e897647f8e1bec
+      - HASH_SALT=thisishashsaltforalphaorderly
+      - TARGET_URL=http://localhost:3000/
+      - ID=example_id
+      - PW=example_pw
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USERNAME=example_user
+      - DB_PASSWORD=example_password
+      - DB_DATABASE=urlshortener
+    depends_on:
+      - postgres
+    networks:
+      - urlshortener
+
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: example_user
+      POSTGRES_PASSWORD: example_password
+      POSTGRES_DB: urlshortener
+    ports:
+      - '5432:5432'
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    networks:
+      - urlshortener
+
+networks:
+  urlshortener:
+    driver: bridge
+
+
 ```
 
-- 첫 실행시 유저가 없으면 아이디/비밀번호를 입력해야 합니다.
-- 유저를 추가하고 싶으실 시 db.sqlite 에 직접 추가하실수 있습니다.
-  - 비밀번호는 뒤에 HASH_SALT 내용을 붙혀서 sha256으로 인코딩해야 합니다.
-  - 개인용 url 줄이기 서비스를 표방해 회원가입 서비스는 지금은 넣지 않았습니다.
+- 위 내용을 docker-compose.yml 로 만들어줍니다.
+- 그리고 같은 디렉토리에서 docker-compose up -d 를 실행합니다.
 
 ---
 
-## 필요한 환경변수 목록
+## 도커 환경변수 목록
 
-- .env 파일을 최상단 폴더에 생성해 아래 값을 입력합니다.
+- 기타 환경변수는 건드리시지 말고 아래 환경변수만 변경해 주세요
 
 ```
-JWT_SECRET={{jwt secret 값}}
-HASH_SALT={{비밀번호 해시 솔트}}
-TARGET_URL={{url}}
+JWT_SECRET : jwt 토큰 secret입니다. 쉘에서 openssl rand -hex 64 를 실행해 생성 후 넣습니다.
+HASH_SALT : 비밀번호 해시 솔트입니다. jwt_secret 과 같이 생성 후 넣습니다.
+TARGET_URL : 배포할 url 주소입니다. 개발을 원하시면 유지하시고 아니면 바꿔주세요
+ID : 초기 실행시 만들어질 기본 계정의 아이디입니다.
+PW : 초기 실행시 만들어질 기본 계정의 비밀번호입니다.
 ```
-
-### 예시
-
-- TARGET_URL : http://localhost:3000/
-  - 끝에 반드시 / 포함
-- SECRET과 SALT는 웹에서 JWT SECRET GENERATOR 같이 검색하면 많이 나옵니다.
-
----
 
 ## 추가 기능
 
