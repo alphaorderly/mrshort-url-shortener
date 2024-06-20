@@ -6,20 +6,19 @@ import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { Shorten } from './entities/shorten.entity';
 import { User } from './auth/entities/user.entity';
+import { postgresConfig } from './postgresConfig';
+import { RedisModule } from '@liaoliaots/nestjs-redis';
+import { redisConfig } from './redisConfig';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'sqlite',
-      database: 'db.sqlite',
-      entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: true,
-    }),
-    AuthModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
     }),
+    TypeOrmModule.forRoot(postgresConfig),
+    RedisModule.forRoot(redisConfig),
+    AuthModule,
     TypeOrmModule.forFeature([User, Shorten]),
   ],
   controllers: [AppController],
