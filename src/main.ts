@@ -36,7 +36,7 @@ async function bootstrap() {
 
   app.useGlobalFilters(new UnauthorizedExceptionFilter());
 
-  await app.listen(6824);
+  await app.listen(3000);
 }
 
 bootstrap();
