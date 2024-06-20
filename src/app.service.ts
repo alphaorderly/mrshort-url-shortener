@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './auth/entities/user.entity';
 import { Repository } from 'typeorm';
 import { Shorten } from './entities/shorten.entity';
+import { InjectRedis } from '@liaoliaots/nestjs-redis';
+import { Redis } from 'ioredis';
 
 @Injectable()
 export class AppService {
@@ -11,6 +13,8 @@ export class AppService {
     private userRepository: Repository<User>,
     @InjectRepository(Shorten)
     private shortenRepository: Repository<Shorten>,
+    @InjectRedis('Redis')
+    private redis: Redis,
   ) {}
 
   async shortenURL(originalURL: string, userID: number): Promise<Shorten> {
@@ -43,18 +47,45 @@ export class AppService {
     return this.shortenRepository.save(shortenedURL);
   }
 
-  async getOriginalURL(shortenedURL: string): Promise<Shorten> {
-    return this.shortenRepository.findOne({
-      where: { shortenedURL: shortenedURL },
-    });
+  async getOriginalURL(shortenedURL: string): Promise<string> {
+    const redisOriginal = await this.redis.get(shortenedURL);
+
+    if (redisOriginal === null) {
+      const shortenedURLData = await this.shortenRepository.findOne({
+        where: { shortenedURL: shortenedURL },
+      });
+
+      if (!shortenedURLData) {
+        return null;
+      }
+
+      this.redis.set(shortenedURL, shortenedURLData.originalURL, 'EX', 60 * 60);
+      return shortenedURLData.originalURL;
+    }
+
+    return redisOriginal;
   }
 
   async getAllShortenedURLs(userID: number): Promise<Shorten[]> {
     return this.shortenRepository.find({ where: { userID: userID } });
   }
 
-  deleteShortenedURL(urlID: number, userID: number) {
-    const removedShortenedURL = this.shortenRepository.delete({
+  async deleteShortenedURL(urlID: number, userID: number) {
+    // Find the target URL
+    const targetUrl = await this.shortenRepository.findOne({
+      where: {
+        id: urlID,
+        userID: userID,
+      },
+    });
+
+    // If the target URL exists in Redis, delete it
+    if (this.redis.exists(targetUrl.shortenedURL)) {
+      this.redis.del(targetUrl.shortenedURL);
+    }
+
+    // Delete the target URL from the database
+    const removedShortenedURL = await this.shortenRepository.delete({
       id: urlID,
       userID: userID,
     });

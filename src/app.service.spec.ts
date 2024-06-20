@@ -1,139 +1,156 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { Redis } from 'ioredis';
+import { Repository } from 'typeorm';
 import { AppService } from './app.service';
-import { Shorten } from './entities/shorten.entity';
 import { User } from './auth/entities/user.entity';
+import { Shorten } from './entities/shorten.entity';
+import { getRedisToken } from '@liaoliaots/nestjs-redis';
+
+const mockShortenRepository = () => ({
+  findOne: jest.fn(),
+  save: jest.fn(),
+  find: jest.fn(),
+  delete: jest.fn(),
+});
+
+const mockUserRepository = () => ({
+  findOne: jest.fn(),
+  save: jest.fn(),
+  find: jest.fn(),
+  delete: jest.fn(),
+});
+
+const mockedRedis = {
+  get: jest.fn(),
+  set: jest.fn(),
+  exists: jest.fn(),
+  del: jest.fn(),
+};
 
 describe('AppService', () => {
   let service: AppService;
-  let shortenRepositoryMock: any;
-  let userRepositoryMock: any;
+  let shortenRepository;
+  let redis;
 
   beforeEach(async () => {
-    shortenRepositoryMock = {
-      findOne: jest.fn(),
-      save: jest.fn(),
-      find: jest.fn(),
-      delete: jest.fn(),
-    };
-
-    userRepositoryMock = {
-      findOne: jest.fn(),
-      save: jest.fn(),
-    };
-
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AppService,
         {
           provide: getRepositoryToken(Shorten),
-          useValue: shortenRepositoryMock,
+          useFactory: mockShortenRepository,
         },
-        {
-          provide: getRepositoryToken(User),
-          useValue: userRepositoryMock,
-        },
+        { provide: getRepositoryToken(User), useFactory: mockUserRepository },
+        { provide: getRedisToken('Redis'), useValue: mockedRedis },
       ],
     }).compile();
 
     service = module.get<AppService>(AppService);
+    shortenRepository = module.get<Repository<Shorten>>(
+      getRepositoryToken(Shorten),
+    );
+    redis = module.get<Redis>(getRedisToken('Redis'));
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
+  it('should be defined', () => {
+    expect(service).toBeDefined();
   });
 
   describe('shortenURL', () => {
-    it('should return an existing shortened URL if it already exists', async () => {
-      const originalURL = 'https://example.com';
-      const userID = 1;
-      const existingShorten = new Shorten();
-      existingShorten.originalURL = originalURL;
-      existingShorten.userID = userID;
+    it('should return existing shortened URL if it exists', async () => {
+      const mockShorten = {
+        originalURL: 'http://example.com',
+        userID: 1,
+        shortenedURL: 'abc123',
+      };
+      shortenRepository.findOne.mockResolvedValue(mockShorten);
 
-      shortenRepositoryMock.findOne.mockResolvedValue(existingShorten);
-
-      const result = await service.shortenURL(originalURL, userID);
-
-      expect(result).toEqual(existingShorten);
-      expect(shortenRepositoryMock.findOne).toHaveBeenCalledWith({
-        where: { originalURL, userID },
+      const result = await service.shortenURL('http://example.com', 1);
+      expect(result).toEqual(mockShorten);
+      expect(shortenRepository.findOne).toHaveBeenCalledWith({
+        where: { originalURL: 'http://example.com', userID: 1 },
       });
     });
 
-    it('should generate a unique shortened URL and save it', async () => {
-      const originalURL = 'https://example.com';
-      const userID = 1;
-      const shortenedURLString = 'abc123';
-
-      const shortenedURL = new Shorten();
-      shortenedURL.originalURL = originalURL;
-      shortenedURL.userID = userID;
-      shortenedURL.shortenedURL = shortenedURLString;
-
-      shortenRepositoryMock.findOne.mockResolvedValue(shortenedURL);
-
-      const result = await service.shortenURL(originalURL, userID);
-
-      expect(result).toEqual(shortenedURL);
-
-      expect(shortenRepositoryMock.findOne).toHaveBeenNthCalledWith(1, {
-        where: { originalURL, userID },
+    it('should create a new shortened URL if it does not exist', async () => {
+      shortenRepository.findOne.mockResolvedValue(null);
+      shortenRepository.save.mockResolvedValue({
+        originalURL: 'http://example.com',
+        userID: 1,
+        shortenedURL: 'abc123',
       });
+
+      const result = await service.shortenURL('http://example.com', 1);
+      expect(result.shortenedURL).toHaveLength(6);
+      expect(shortenRepository.save).toHaveBeenCalled();
     });
   });
 
   describe('getOriginalURL', () => {
-    it('should return the original URL for a given shortened URL', async () => {
-      const shortenedURL = 'abc123';
-      const expectedShorten = new Shorten();
-      expectedShorten.shortenedURL = shortenedURL;
+    it('should return original URL from Redis if exists', async () => {
+      redis.get.mockResolvedValue('http://example.com');
 
-      shortenRepositoryMock.findOne.mockResolvedValue(expectedShorten);
+      const result = await service.getOriginalURL('abc123');
+      expect(result).toEqual('http://example.com');
+      expect(redis.get).toHaveBeenCalledWith('abc123');
+    });
 
-      const result = await service.getOriginalURL(shortenedURL);
+    it('should return original URL from database and set Redis if not in Redis', async () => {
+      const mockShorten = {
+        originalURL: 'http://example.com',
+        shortenedURL: 'abc123',
+      };
+      redis.get.mockResolvedValue(null);
+      shortenRepository.findOne.mockResolvedValue(mockShorten);
 
-      expect(result).toEqual(expectedShorten);
-      expect(shortenRepositoryMock.findOne).toHaveBeenCalledWith({
-        where: { shortenedURL },
+      const result = await service.getOriginalURL('abc123');
+      expect(result).toEqual('http://example.com');
+      expect(shortenRepository.findOne).toHaveBeenCalledWith({
+        where: { shortenedURL: 'abc123' },
       });
+      expect(redis.set).toHaveBeenCalledWith(
+        'abc123',
+        'http://example.com',
+        'EX',
+        60 * 60,
+      );
     });
   });
 
   describe('getAllShortenedURLs', () => {
-    it('should return all shortened URLs for a given user ID', async () => {
-      const userID = 1;
-      const expectedShortens = [
-        { shortenedURL: 'abc123' },
-        { shortenedURL: 'def456' },
+    it('should return all shortened URLs for a user', async () => {
+      const mockShortens = [
+        {
+          originalURL: 'http://example.com',
+          userID: 1,
+          shortenedURL: 'abc123',
+        },
       ];
+      shortenRepository.find.mockResolvedValue(mockShortens);
 
-      shortenRepositoryMock.find.mockResolvedValue(expectedShortens);
-
-      const result = await service.getAllShortenedURLs(userID);
-
-      expect(result).toEqual(expectedShortens);
-      expect(shortenRepositoryMock.find).toHaveBeenCalledWith({
-        where: { userID },
+      const result = await service.getAllShortenedURLs(1);
+      expect(result).toEqual(mockShortens);
+      expect(shortenRepository.find).toHaveBeenCalledWith({
+        where: { userID: 1 },
       });
     });
   });
 
   describe('deleteShortenedURL', () => {
-    it('should delete a shortened URL for a given URL ID and user ID', async () => {
-      const urlID = 1;
-      const userID = 1;
-      const removedShortenedURL = {};
+    it('should delete the shortened URL from database and Redis', async () => {
+      const mockShorten = { id: 1, userID: 1, shortenedURL: 'abc123' };
+      shortenRepository.findOne.mockResolvedValue(mockShorten);
+      shortenRepository.delete.mockResolvedValue({ affected: 1 });
+      redis.exists.mockResolvedValue(1);
 
-      shortenRepositoryMock.delete.mockResolvedValue(removedShortenedURL);
-
-      const result = await service.deleteShortenedURL(urlID, userID);
-
-      expect(result).toEqual(removedShortenedURL);
-      expect(shortenRepositoryMock.delete).toHaveBeenCalledWith({
-        id: urlID,
-        userID,
+      const result = await service.deleteShortenedURL(1, 1);
+      expect(redis.del).toHaveBeenCalledWith('abc123');
+      expect(shortenRepository.delete).toHaveBeenCalledWith({
+        id: 1,
+        userID: 1,
       });
+      expect(result).toEqual({ affected: 1 });
     });
   });
 });

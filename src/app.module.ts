@@ -6,6 +6,9 @@ import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { Shorten } from './entities/shorten.entity';
 import { User } from './auth/entities/user.entity';
+import { postgresConfig } from './postgresConfig';
+import { RedisModule } from '@liaoliaots/nestjs-redis';
+import { redisConfig } from './redisConfig';
 
 @Module({
   imports: [
@@ -13,16 +16,8 @@ import { User } from './auth/entities/user.entity';
       isGlobal: true,
       envFilePath: '.env',
     }),
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: process.env.DB_HOST,
-      port: parseInt(process.env.DB_PORT, 10),
-      username: process.env.DB_USERNAME,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_DATABASE,
-      entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: true,
-    }),
+    TypeOrmModule.forRoot(postgresConfig),
+    RedisModule.forRoot(redisConfig),
     AuthModule,
     TypeOrmModule.forFeature([User, Shorten]),
   ],

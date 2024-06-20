@@ -4,6 +4,14 @@
 
 ---
 
+### 사용된 프레임워크/DB
+
+- nestjs
+- postgresql
+- redis
+
+---
+
 ## 배포법
 
 - 도커를 사용합니다.
@@ -18,16 +26,20 @@ services:
     environment:
       - JWT_SECRET=ea28f835f9be0be2bbc35481ca04543d88ef2474e9500a7baacb6109d4ff7132abba86bdc14f62c6739cff536a042132f0892a668a2750c9b8e897647f8e1bec
       - HASH_SALT=thisishashsaltforalphaorderly
-      - TARGET_URL=http://localhost:3000/
-      - ID=example_id
-      - PW=example_pw
+      - TARGET_URL=http://localhost:6824/
+      - ID=ilov1112
+      - PW=Nicknamew1358!
       - DB_HOST=postgres
       - DB_PORT=5432
       - DB_USERNAME=example_user
       - DB_PASSWORD=example_password
       - DB_DATABASE=urlshortener
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=example_redis
     depends_on:
       - postgres
+      - redis
     networks:
       - urlshortener
 
@@ -37,17 +49,23 @@ services:
       POSTGRES_USER: example_user
       POSTGRES_PASSWORD: example_password
       POSTGRES_DB: urlshortener
-    ports:
-      - '5432:5432'
     volumes:
-      - ./data/postgres:/var/lib/postgresql/data
+      - ./postgres-data:/var/lib/postgresql/data
+    networks:
+      - urlshortener
+
+  redis:
+    image: redis:7.2
+    command: ['redis-server', '--requirepass', 'example_redis']
+    volumes:
+      - ./data:/data
+    restart: always
     networks:
       - urlshortener
 
 networks:
   urlshortener:
     driver: bridge
-
 
 ```
 
@@ -58,7 +76,7 @@ networks:
 
 ## 도커 환경변수 목록
 
-- 기타 환경변수는 건드리시지 말고 아래 환경변수만 변경해 주세요
+- 기타 환경변수는 잘 모르시겠으면 건드리시지 말고 아래 환경변수만 변경해 주세요
 
 ```
 JWT_SECRET : jwt 토큰 secret입니다. 쉘에서 openssl rand -hex 64 를 실행해 생성 후 넣습니다.

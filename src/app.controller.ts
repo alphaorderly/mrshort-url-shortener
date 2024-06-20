@@ -36,13 +36,13 @@ export class AppController {
   async redirectToOriginalURL(@Req() req: Request, @Res() res: Response) {
     const shortenedURL = req.params.shortenedURL as string;
 
-    const response = await this.appService.getOriginalURL(shortenedURL);
+    const originalURL = await this.appService.getOriginalURL(shortenedURL);
 
-    if (response === null) {
+    if (originalURL === null) {
       return res.status(404).send('해당 URL을 찾을수 없습니다. URL not found.');
     }
 
-    return res.redirect(response.originalURL);
+    return res.redirect(originalURL);
   }
 
   @Delete('/:urlID')
