@@ -9,6 +9,10 @@ import { User } from './auth/entities/user.entity';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DB_HOST,
@@ -20,10 +24,6 @@ import { User } from './auth/entities/user.entity';
       synchronize: true,
     }),
     AuthModule,
-    ConfigModule.forRoot({
-      isGlobal: true,
-      envFilePath: '.env',
-    }),
     TypeOrmModule.forFeature([User, Shorten]),
   ],
   controllers: [AppController],
