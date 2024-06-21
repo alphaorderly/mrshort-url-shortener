@@ -41,7 +41,7 @@
                 <a href={{this.originalURL}}>{{this.originalURL}}</a>
               </td>
               <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
-                <a class="cursor-pointer" onclick='copyToClipboard(event, "{{this.shortenedURL}}")'>{{this.shortenedURL}}</a>
+                <button type="button" class="cursor-pointer shorten-url">{{this.shortenedURL}}</button>
               </td>
               <td class="px-4 py-2 whitespace-nowrap text-right text-sm font-medium cursor-pointer">
                 <a class="text-red-600 hover:text-red-900" onclick='removeArticle(event, "{{this.id}}")'>삭제하기</a>
@@ -67,24 +67,40 @@
 
   let shortenedStats = document.getElementsByClassName('stats');
 
+  let shortenedUrls = document.getElementsByClassName('shorten-url');
+
+  for (let i = 0; i < shortenedUrls.length; i++) {
+    shortenedUrls[i].addEventListener('click', function() {
+      copyToClipboard(event, shortenedUrls[i].innerText);
+    });
+    shortenedUrls[i].addEventListener('touchstart', function() {
+      copyToClipboard(event, shortenedUrls[i].innerText);
+    });
+  }
+
   function copyToClipboard(event, url) {
     event.preventDefault(); // Prevent default anchor behavior
-    navigator.clipboard.writeText(targetUrl + url).then(function() {
-      alert('URL이 복사되었습니다.');
-    }, function(err) {
-      alert('URL 복사에 실패했습니다.');
-    });
+    try {
+        navigator.clipboard.writeText(targetUrl + url).then(function() {
+        alert('URL이 복사되었습니다.');
+      }, function(err) {
+        alert('URL 복사에 실패했습니다.');
+      });
+    } catch (err) {
+      window.open(targetUrl + url, '_blank');
+    }
+
   } 
 
   function removeArticle(event, id) {
+
+    event.preventDefault();
 
     const ans = confirm('정말 삭제하시겠습니까?');
 
     if (!ans) {
       return;
     }
-
-    event.preventDefault();
     fetch(`/${id}`, {
       method: 'DELETE',
     })
