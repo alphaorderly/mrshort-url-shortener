@@ -14,7 +14,9 @@ export class Shorten {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => User, (user) => user.id)
+  @ManyToOne(() => User, (user) => user.id, {
+    onDelete: 'CASCADE',
+  })
   userID: number;
 
   @Column()
@@ -25,10 +27,7 @@ export class Shorten {
   })
   shortenedURL: string;
 
-  @OneToMany(() => Click, (click) => click.shorten, {
-    cascade: true,
-    eager: true,
-  })
+  @OneToMany(() => Click, (click) => click.shorten, { eager: true })
   clicks: Click[];
 
   clickCount: number;

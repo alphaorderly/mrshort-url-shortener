@@ -74,7 +74,7 @@ export class AppService {
       );
 
       const click = new Click();
-      click.shorten = shortenedURLData.id;
+      click.shorten = shortenedURLData;
       click.clickDate = new Date();
       this.clickRepository.save(click);
 

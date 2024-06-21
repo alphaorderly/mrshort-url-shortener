@@ -24,12 +24,11 @@ export class AppController {
 
     const shortenedURLs = await this.appService.getAllShortenedURLs(userID);
 
-    for (const short in shortenedURLs) {
-      shortenedURLs[short].shortenedURL =
-        process.env.TARGET_URL + shortenedURLs[short].shortenedURL;
-    }
-
-    return { targetUrl: process.env.TARGET_URL, shortenedURLs: shortenedURLs };
+    return {
+      targetUrl: process.env.TARGET_URL,
+      shortenedURLs: shortenedURLs,
+      target: process.env.TARGET_URL,
+    };
   }
 
   @Get('/:shortenedURL')
@@ -39,7 +38,7 @@ export class AppController {
     const originalURL = await this.appService.getOriginalURL(shortenedURL);
 
     if (originalURL === null) {
-      return res.status(404).send('해당 URL을 찾을수 없습니다. URL not found.');
+      return res.status(404).render('notfound');
     }
 
     return res.redirect(originalURL);

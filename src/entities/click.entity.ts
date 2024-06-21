@@ -6,8 +6,10 @@ export class Click {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Shorten, (shorten) => shorten.id)
-  shorten: number;
+  @ManyToOne(() => Shorten, (shorten) => shorten.id, {
+    onDelete: 'CASCADE',
+  })
+  shorten: Shorten;
 
   @Column()
   clickDate: Date;

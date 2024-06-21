@@ -10,6 +10,7 @@ import { postgresConfig } from './postgresConfig';
 import { RedisModule } from '@liaoliaots/nestjs-redis';
 import { redisConfig } from './redisConfig';
 import { Click } from './entities/click.entity';
+import { StatModule } from './stat/stat.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { Click } from './entities/click.entity';
     RedisModule.forRoot(redisConfig),
     AuthModule,
     TypeOrmModule.forFeature([User, Shorten, Click]),
+    StatModule,
   ],
   controllers: [AppController],
   providers: [AppService],
