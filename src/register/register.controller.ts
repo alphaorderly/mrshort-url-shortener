@@ -43,9 +43,9 @@ export class RegisterController {
 
   @Post('')
   async registerUser(@Body() body: RegisterDto, @Res() res: Response) {
-    const { id, password } = body;
+    const { id, password, url } = body;
 
-    const user = await this.registerService.registerUser(id, password);
+    const user = await this.registerService.registerUser(id, password, url);
 
     if (user instanceof RegisterErrorDto) {
       res.status(400).send(user);

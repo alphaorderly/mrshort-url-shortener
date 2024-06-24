@@ -36,6 +36,7 @@ export class RegisterService {
   async registerUser(
     id: string,
     password: string,
+    url: string,
   ): Promise<User | RegisterErrorDto> {
     const user = await this.userRepository.find({ where: { username: id } });
     if (user.length === 1) {
@@ -44,7 +45,7 @@ export class RegisterService {
 
     const newUser = await this.authService.register(id, password);
 
-    await this.redis.del(id);
+    await this.redis.del(url);
 
     return newUser;
   }

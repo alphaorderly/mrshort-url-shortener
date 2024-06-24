@@ -40,6 +40,8 @@
 
         const id = document.getElementById('id').value;
 
+        const url = location.pathname.split('/').slice(-1)[0];
+
         const ans = await fetch('/register', {
                 method: 'POST',
                 headers: {
@@ -48,6 +50,7 @@
                 body: JSON.stringify({
                     id,
                     password,
+                    url
                 }),
             })
         
