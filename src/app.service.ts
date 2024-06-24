@@ -28,9 +28,11 @@ export class AppService {
     shortenedURL.originalURL = originalURL;
     shortenedURL.userID = userID;
 
-    const existingShortend = await this.shortenRepository.findOne({
-      where: { originalURL: originalURL, userID: userID },
-    });
+    const existingShortend = await this.shortenRepository
+      .createQueryBuilder('shorten')
+      .where('shorten.originalURL = :originalURL', { originalURL: originalURL })
+      .andWhere('shorten.userID = :userID', { userID: userID })
+      .getOne();
 
     if (existingShortend) {
       return existingShortend;
@@ -92,17 +94,22 @@ export class AppService {
   }
 
   async getAllShortenedURLs(userID: number): Promise<Shorten[]> {
-    return this.shortenRepository.find({ where: { userID: userID } });
+    const shortenedURLs = await this.shortenRepository
+      .createQueryBuilder('shorten')
+      .where('shorten.userID = :userID', { userID: userID })
+      .leftJoinAndSelect('shorten.clicks', 'clicks')
+      .getMany();
+
+    return shortenedURLs;
   }
 
   async deleteShortenedURL(urlID: number, userID: number) {
     // Find the target URL
-    const targetUrl = await this.shortenRepository.findOne({
-      where: {
-        id: urlID,
-        userID: userID,
-      },
-    });
+    const targetUrl = await this.shortenRepository
+      .createQueryBuilder('shorten')
+      .where('shorten.id = :urlID', { urlID: urlID })
+      .andWhere('shorten.userID = :userID', { userID: userID })
+      .getOne();
 
     // If the target URL exists in Redis, delete it
     if (this.redis.exists(targetUrl.shortenedURL)) {

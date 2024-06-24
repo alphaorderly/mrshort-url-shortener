@@ -1,7 +1,8 @@
-<section class='flex flex-wrap justify-center items-start min-h-screen bg-gradient-to-r from-blue-500 to-purple-500 text-white p-8'>
+<section class='flex flex-col flex-wrap justify-start items-center min-h-screen bg-gradient-to-r from-blue-500 to-purple-500 text-white p-8 gap-10'>
   <p class="hidden" id="target_url">{{targetUrl}}</p>
   <div class='flex flex-col gap-5 mt-5 sm:gap-10 sm:mt-20 w-[90%] lg:w-auto bg-white shadow-2xl rounded-xl p-8 text-gray-900'>
     <button id="logout_button" class='p-3 bg-red-500 text-white rounded-full font-bold text-xl hover:bg-red-700 transition duration-300'>로그아웃</button>
+    <a href="/auth/change-password" class='text-center p-3 bg-green-500 text-white rounded-full font-bold text-xl hover:bg-green-700 transition duration-300'>비밀번호 변경</a>
     <h1 class='text-2xl sm:text-3xl font-extrabold'>URL 줄이기</h1>
     <div class='flex flex-col sm:flex-row gap-3'>
       <input
@@ -55,6 +56,12 @@
         </tbody>
       </table>
     </div>
+  </div>
+  <div class="rounded-lg bg-white text-black flex flex-col justify-center p-4">
+    <button type="button" id="register-button" class="bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg text-white p-2 font-medium text-lg">
+      회원가입 URL 생성하기
+    </button>
+    <p id="registerUrl"></p>
   </div>
 </section>
 
@@ -145,11 +152,21 @@
       })};
 
     function logout() {
-      console.log('logout');
       location.href = '/auth/logout'
     }
   
     button.addEventListener('click', shortenUrl);
     logoutButton.addEventListener('click', logout);
+
+    const registerButton = document.getElementById('register-button');
+    const registerUrl = document.getElementById('registerUrl');
+
+    registerButton.addEventListener('click', async () => {
+      const res = await fetch('/register/createurl', {
+        method: 'GET',
+      });
+      const data = await res.json();
+      registerUrl.innerText = `${targetUrl}register/url/${data.url}`;
+    });
 
 </script>

@@ -11,6 +11,7 @@ import { RedisModule } from '@liaoliaots/nestjs-redis';
 import { redisConfig } from './redisConfig';
 import { Click } from './entities/click.entity';
 import { StatModule } from './stat/stat.module';
+import { RegisterModule } from './register/register.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { StatModule } from './stat/stat.module';
     AuthModule,
     TypeOrmModule.forFeature([User, Shorten, Click]),
     StatModule,
+    RegisterModule,
   ],
   controllers: [AppController],
   providers: [AppService],

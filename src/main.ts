@@ -21,7 +21,6 @@ async function bootstrap() {
     const pw = process.env.PW;
 
     if (!id || !pw) {
-      console.log('ID와 PW를 입력해주세요.');
       return;
     }
 

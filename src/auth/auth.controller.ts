@@ -1,8 +1,18 @@
-import { Controller, Post, Body, Res, Get, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Res,
+  Get,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Response } from 'express';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import LoginBodyDto from './dtos/loginBody.dto';
+import { ChangePasswordDto } from './dtos/changePassword.dto';
+import { ErrorDto } from 'src/dtos/error.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -31,5 +41,32 @@ export class AuthController {
   async logout(@Res() res: Response) {
     res.clearCookie('jwt');
     res.redirect('/');
+  }
+
+  @Get('change-password')
+  @UseGuards(JwtAuthGuard)
+  async getChangePassword(@Res() res: Response) {
+    res.render('change-password');
+  }
+
+  @Post('change-password')
+  @UseGuards(JwtAuthGuard)
+  async changePassword(
+    @Body() body: ChangePasswordDto,
+    @Res() res: Response,
+    @Req() req,
+  ) {
+    const userId = req.user.userId;
+    const changedUser = await this.authService.changePassword(
+      userId,
+      body.oldPassword,
+      body.newPassword,
+    );
+
+    if (changedUser instanceof ErrorDto) {
+      return res.status(400).json(changedUser);
+    } else {
+      return res.status(200).json('Password changed successfully');
+    }
   }
 }

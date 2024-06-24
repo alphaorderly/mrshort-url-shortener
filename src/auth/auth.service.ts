@@ -4,6 +4,7 @@ import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { createHash } from 'crypto';
+import { ErrorDto } from 'src/dtos/error.dto';
 
 @Injectable()
 export class AuthService {
@@ -45,5 +46,29 @@ export class AuthService {
     return {
       access_token: this.jwtService.sign(payload),
     };
+  }
+
+  async changePassword(
+    userId: number,
+    oldPassword: string,
+    newPassword: string,
+  ) {
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .addSelect('user.password')
+      .where('user.id = :id', { id: userId })
+      .andWhere('user.password = :password', {
+        password: this.hashPassword(oldPassword),
+      })
+      .getOne();
+
+    if (!user) {
+      return new ErrorDto('현재 비밀번호가 일치하지 않습니다.');
+    }
+
+    user.password = this.hashPassword(newPassword);
+    const changedUser = await this.userRepository.save(user);
+
+    return changedUser;
   }
 }
