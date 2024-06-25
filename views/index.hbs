@@ -142,12 +142,25 @@
     event.preventDefault(); // Prevent default anchor behavior
     try {
         navigator.clipboard.writeText(targetUrl + url).then(function() {
-        alert('URL이 복사되었습니다.');
-      }, function(err) {
-        alert('URL 복사에 실패했습니다.');
-      });
+            alert('URL이 복사되었습니다.');
+        }, function(err) {
+            alert('URL 복사에 실패했습니다.');
+        });
     } catch (err) {
-      window.open(targetUrl + url, '_blank');
+        // Fallback for iOS Safari
+        var textArea = document.createElement("textarea");
+        textArea.value = targetUrl + url;
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            var successful = document.execCommand('copy');
+            var msg = successful ? 'URL이 복사되었습니다.' : 'URL 복사에 실패했습니다.';
+            alert(msg);
+        } catch (err) {
+            alert('URL 복사에 실패했습니다.');
+        }
+        document.body.removeChild(textArea);
     }
   } 
 
