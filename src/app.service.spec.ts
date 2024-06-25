@@ -66,7 +66,11 @@ describe('AppService', () => {
       };
       shortenRepository.findOne.mockResolvedValue(mockShorten);
 
-      const result = await service.shortenURL('http://example.com', 1);
+      const result = await service.shortenURL(
+        'http://example.com',
+        1,
+        new Date(),
+      );
       expect(result).toEqual(mockShorten);
       expect(shortenRepository.findOne).toHaveBeenCalledWith({
         where: { originalURL: 'http://example.com', userID: 1 },
@@ -81,7 +85,11 @@ describe('AppService', () => {
         shortenedURL: 'abc123',
       });
 
-      const result = await service.shortenURL('http://example.com', 1);
+      const result = await service.shortenURL(
+        'http://example.com',
+        1,
+        new Date(),
+      );
       expect(result.shortenedURL).toHaveLength(6);
       expect(shortenRepository.save).toHaveBeenCalled();
     });

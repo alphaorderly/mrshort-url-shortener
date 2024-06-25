@@ -66,7 +66,13 @@ export class AppController {
   shortenURL(@Req() req) {
     const userID = req.user.userId;
     const originalURL = req.body.url;
+    const expire = req.body.expiryDate;
 
-    return this.appService.shortenURL(originalURL, userID);
+    let expireDate: Date = null;
+    if (expire !== null) {
+      expireDate = new Date(expire);
+    }
+
+    return this.appService.shortenURL(originalURL, userID, expireDate);
   }
 }

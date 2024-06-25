@@ -20,23 +20,19 @@ export class AppService {
     private redis: Redis,
   ) {}
 
-  async shortenURL(originalURL: string, userID: number): Promise<Shorten> {
+  async shortenURL(
+    originalURL: string,
+    userID: number,
+    expire: Date,
+  ): Promise<Shorten> {
     let uniqueShortenedURL = false;
     let shortenedURLString = '';
     const shortenedURL = new Shorten();
 
     shortenedURL.originalURL = originalURL;
     shortenedURL.userID = userID;
-
-    const existingShortend = await this.shortenRepository
-      .createQueryBuilder('shorten')
-      .where('shorten.originalURL = :originalURL', { originalURL: originalURL })
-      .andWhere('shorten.userID = :userID', { userID: userID })
-      .getOne();
-
-    if (existingShortend) {
-      return existingShortend;
-    }
+    shortenedURL.expiredAt = expire;
+    shortenedURL.deleted = false;
 
     while (!uniqueShortenedURL) {
       shortenedURLString = Math.random().toString(36).substring(2, 8);
@@ -58,22 +54,49 @@ export class AppService {
 
     if (redisOriginal === null) {
       const shortenedURLData = await this.shortenRepository.findOne({
-        where: { shortenedURL: shortenedURL },
+        where: { shortenedURL: shortenedURL, deleted: false },
       });
 
       if (!shortenedURLData) {
         return null;
       }
 
-      this.redis.set(
-        shortenedURL,
-        JSON.stringify({
-          originalURL: shortenedURLData.originalURL,
-          shortenID: shortenedURLData.id,
-        }),
-        'EX',
-        60 * 60,
-      );
+      if (
+        shortenedURLData?.expiredAt < new Date() &&
+        shortenedURLData.expiredAt !== null
+      ) {
+        this.shortenRepository
+          .createQueryBuilder()
+          .update(Shorten)
+          .set({ deleted: true })
+          .where('id = :id', { id: shortenedURLData.id })
+          .execute();
+
+        return null;
+      }
+
+      if (shortenedURLData.expiredAt === null) {
+        this.redis.set(
+          shortenedURL,
+          JSON.stringify({
+            originalURL: shortenedURLData.originalURL,
+            shortenID: shortenedURLData.id,
+          }),
+        );
+      } else {
+        this.redis.set(
+          shortenedURL,
+          JSON.stringify({
+            originalURL: shortenedURLData.originalURL,
+            shortenID: shortenedURLData.id,
+          }),
+          'EX',
+          Math.floor(
+            (shortenedURLData.expiredAt.getTime() - new Date().getTime()) /
+              1000,
+          ),
+        );
+      }
 
       const click = new Click();
       click.shorten = shortenedURLData;
@@ -100,6 +123,21 @@ export class AppService {
       .leftJoinAndSelect('shorten.clicks', 'clicks')
       .getMany();
 
+    // If the shortened URL is expired, delete it from the database
+    shortenedURLs.forEach(async (shortenedURL) => {
+      if (
+        shortenedURL.expiredAt < new Date() &&
+        shortenedURL.expiredAt !== null
+      ) {
+        await this.shortenRepository
+          .createQueryBuilder()
+          .update(Shorten)
+          .set({ deleted: true })
+          .where('id = :id', { id: shortenedURL.id })
+          .execute();
+      }
+    });
+
     return shortenedURLs;
   }
 
@@ -117,10 +155,13 @@ export class AppService {
     }
 
     // Delete the target URL from the database
-    const removedShortenedURL = await this.shortenRepository.delete({
-      id: urlID,
-      userID: userID,
-    });
+    const removedShortenedURL = await this.shortenRepository
+      .createQueryBuilder()
+      .delete()
+      .from(Shorten)
+      .where('id = :id', { id: urlID })
+      .andWhere('userID = :userID', { userID: userID })
+      .execute();
 
     return removedShortenedURL;
   }

@@ -19,6 +19,11 @@ export class Shorten {
   })
   userID: number;
 
+  @Column({
+    default: false,
+  })
+  deleted: boolean;
+
   @Column()
   originalURL: string;
 
@@ -26,6 +31,14 @@ export class Shorten {
     unique: true,
   })
   shortenedURL: string;
+
+  // Expiration date, set default that old shorten will not be deleted
+  @Column({
+    type: 'timestamp',
+    nullable: true,
+    default: null,
+  })
+  expiredAt: Date | null;
 
   @OneToMany(() => Click, (click) => click.shorten, { eager: true })
   clicks: Click[];

@@ -15,6 +15,8 @@
             <h2 class="text-2xl font-extrabold mb-4" id="original-url">Original URL</h2>
             <h2 class="text-2xl font-extrabold mb-4" id="shorten-url">Shortened URL</h2>
             <h2 class="text-2xl font-extrabold mb-4" id="all-clicks">Total Clicks</h2>
+            <h2 class="text-2xl font-extrabold mb-4" id="expire">Expire</h2>
+            <h2 class="text-2xl font-extrabold mb-4" id="is-expired">Expire</h2>
         </div>
         
         <div class="bg-white shadow-2xl rounded-xl p-8 text-gray-900">
@@ -46,6 +48,22 @@
 
         // Set the total clicks
         document.getElementById('all-clicks').textContent = `총 클릭 수: ${short.clickCount}`;
+
+        // Set the expire status
+        if(short.deleted === false) {
+            document.getElementById('is-expired').textContent = `만료 여부: 아니요`;
+        } else {
+            document.getElementById('is-expired').textContent = `만료 여부: 예`;
+        }
+
+        // Set the expire date
+        if(short.expiredAt === null) {
+            document.getElementById('expire').textContent = `만료일: 없음`;
+        } else {
+            const expiredAt = new Date(short.expiredAt);
+            const formatted = expiredAt.toISOString().split('T')[0] + ' ' + expiredAt.toTimeString().split(' ')[0];
+            document.getElementById('expire').textContent = `만료일: ${formatted}`;
+        }
 
         
         // Extract labels and data points
