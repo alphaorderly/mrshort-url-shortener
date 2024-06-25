@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './auth/entities/user.entity';
 import { Repository } from 'typeorm';
@@ -58,7 +58,7 @@ export class AppService {
       });
 
       if (!shortenedURLData) {
-        return null;
+        throw new NotFoundException('URL has expired');
       }
 
       if (
@@ -72,7 +72,7 @@ export class AppService {
           .where('id = :id', { id: shortenedURLData.id })
           .execute();
 
-        return null;
+        throw new NotFoundException('URL has expired');
       }
 
       if (shortenedURLData.expiredAt === null) {

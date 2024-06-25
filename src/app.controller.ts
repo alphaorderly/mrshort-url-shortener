@@ -37,10 +37,6 @@ export class AppController {
 
     const originalURL = await this.appService.getOriginalURL(shortenedURL);
 
-    if (originalURL === null) {
-      return res.status(404).render('notfound');
-    }
-
     return res.redirect(originalURL);
   }
 
