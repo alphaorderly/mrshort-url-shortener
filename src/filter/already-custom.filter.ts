@@ -1,7 +1,8 @@
-import { ArgumentsHost, ExceptionFilter } from '@nestjs/common';
+import { ArgumentsHost, Catch, ExceptionFilter } from '@nestjs/common';
 import { Response } from 'express';
 import { AlreadyUrlExistException } from 'src/exception/AlreadyUrlExist.exception';
 
+@Catch(AlreadyUrlExistException)
 export class AlreadyUrlExistFilter implements ExceptionFilter {
   catch(exception: AlreadyUrlExistException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
