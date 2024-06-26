@@ -40,6 +40,21 @@ export class AppController {
     return res.redirect(originalURL);
   }
 
+  @Post('/:shortenedURL')
+  async redirectToOriginalURLWithPassword(
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
+    const password = req.body.password;
+
+    const originalURL = await this.appService.getPasswordProtectedUrl(
+      req.params.shortenedURL,
+      password,
+    );
+
+    return res.redirect(originalURL);
+  }
+
   @Delete('/:urlID')
   @UseGuards(JwtAuthGuard)
   async deleteShortenedURL(@Req() req, @Res() res: Response) {
@@ -59,16 +74,26 @@ export class AppController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  shortenURL(@Req() req) {
+  async shortenURL(@Req() req, @Res() res: Response) {
     const userID = req.user.userId;
     const originalURL = req.body.url;
     const expire = req.body.expiryDate;
+    const password = req.body.password;
+    const customURL = req.body.customURL;
 
     let expireDate: Date = null;
     if (expire !== null) {
       expireDate = new Date(expire);
     }
 
-    return this.appService.shortenURL(originalURL, userID, expireDate);
+    const shortenedURL = await this.appService.shortenURL(
+      originalURL,
+      userID,
+      expireDate,
+      password,
+      customURL,
+    );
+
+    return res.status(200).json(shortenedURL);
   }
 }

@@ -70,6 +70,7 @@ describe('AppService', () => {
         'http://example.com',
         1,
         new Date(),
+        null,
       );
       expect(result).toEqual(mockShorten);
       expect(shortenRepository.findOne).toHaveBeenCalledWith({
@@ -89,6 +90,7 @@ describe('AppService', () => {
         'http://example.com',
         1,
         new Date(),
+        null,
       );
       expect(result.shortenedURL).toHaveLength(6);
       expect(shortenRepository.save).toHaveBeenCalled();

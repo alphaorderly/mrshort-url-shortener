@@ -8,6 +8,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Click } from './click.entity';
+import { Exclude } from 'class-transformer';
 
 @Entity()
 export class Shorten {
@@ -44,6 +45,13 @@ export class Shorten {
   clicks: Click[];
 
   clickCount: number;
+
+  @Column({
+    nullable: true,
+    default: null,
+  })
+  @Exclude()
+  password: string | null;
 
   @AfterLoad()
   countClicks() {

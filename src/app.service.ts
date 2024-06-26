@@ -6,6 +6,9 @@ import { Shorten } from './entities/shorten.entity';
 import { InjectRedis } from '@liaoliaots/nestjs-redis';
 import { Redis } from 'ioredis';
 import { Click } from './entities/click.entity';
+import { PasswordRequiredException } from './exception/PasswordRequired.exception';
+import { AuthService } from './auth/auth.service';
+import { AlreadyUrlExistException } from './exception/AlreadyUrlExist.exception';
 
 @Injectable()
 export class AppService {
@@ -18,13 +21,16 @@ export class AppService {
     private clickRepository: Repository<Click>,
     @InjectRedis('Redis')
     private redis: Redis,
+    private readonly authService: AuthService,
   ) {}
 
   async shortenURL(
     originalURL: string,
     userID: number,
-    expire: Date,
-  ): Promise<Shorten> {
+    expire: Date | null,
+    password: string | null,
+    customURL: string | null,
+  ): Promise<Shorten | null> {
     let uniqueShortenedURL = false;
     let shortenedURLString = '';
     const shortenedURL = new Shorten();
@@ -33,6 +39,21 @@ export class AppService {
     shortenedURL.userID = userID;
     shortenedURL.expiredAt = expire;
     shortenedURL.deleted = false;
+    shortenedURL.password =
+      password !== null ? this.authService.hashPassword(password) : null;
+
+    if (customURL) {
+      const existingURL = await this.shortenRepository.findOne({
+        where: { shortenedURL: customURL },
+      });
+      if (existingURL) {
+        throw new AlreadyUrlExistException();
+      }
+
+      shortenedURL.shortenedURL = customURL;
+
+      return this.shortenRepository.save(shortenedURL);
+    }
 
     while (!uniqueShortenedURL) {
       shortenedURLString = Math.random().toString(36).substring(2, 8);
@@ -47,6 +68,50 @@ export class AppService {
     shortenedURL.shortenedURL = shortenedURLString;
 
     return this.shortenRepository.save(shortenedURL);
+  }
+
+  addClick(shortenedURLData: Shorten) {
+    const click = new Click();
+    click.shorten = shortenedURLData;
+    click.clickDate = new Date();
+    this.clickRepository.save(click);
+  }
+
+  async getPasswordProtectedUrl(shortenedURL: string, password: string) {
+    const hashedPassword = this.authService.hashPassword(password);
+
+    const shortenedURLData = await this.shortenRepository
+      .createQueryBuilder('shorten')
+      .where('shorten.shortenedURL = :shortenedURL', {
+        shortenedURL: shortenedURL,
+      })
+      .getOne();
+
+    if (!shortenedURLData) {
+      throw new NotFoundException('URL has expired');
+    }
+
+    if (
+      shortenedURLData.expiredAt < new Date() &&
+      shortenedURLData.expiredAt !== null
+    ) {
+      this.shortenRepository
+        .createQueryBuilder()
+        .update(Shorten)
+        .set({ deleted: true })
+        .where('id = :id', { id: shortenedURLData.id })
+        .execute();
+
+      throw new NotFoundException('URL has expired');
+    }
+
+    if (shortenedURLData.password !== hashedPassword) {
+      throw new PasswordRequiredException();
+    }
+
+    this.addClick(shortenedURLData);
+
+    return shortenedURLData.originalURL;
   }
 
   async getOriginalURL(shortenedURL: string): Promise<string> {
@@ -75,6 +140,10 @@ export class AppService {
         throw new NotFoundException('URL has expired');
       }
 
+      if (shortenedURLData.password !== null) {
+        throw new PasswordRequiredException();
+      }
+
       if (shortenedURLData.expiredAt === null) {
         this.redis.set(
           shortenedURL,
@@ -98,20 +167,14 @@ export class AppService {
         );
       }
 
-      const click = new Click();
-      click.shorten = shortenedURLData;
-      click.clickDate = new Date();
-      this.clickRepository.save(click);
+      this.addClick(shortenedURLData);
 
       return shortenedURLData.originalURL;
     }
 
     const redisData = JSON.parse(redisOriginal);
 
-    const click = new Click();
-    click.shorten = redisData.shortenID;
-    click.clickDate = new Date();
-    this.clickRepository.save(click);
+    this.addClick(redisData.shortenID);
 
     return redisData.originalURL;
   }

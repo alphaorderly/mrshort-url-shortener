@@ -1,11 +1,11 @@
 <section class='flex flex-col flex-wrap justify-start items-center min-h-screen bg-gradient-to-r from-blue-500 to-purple-500 text-white p-8 gap-10'>
   <p class="hidden" id="target_url">{{targetUrl}}</p>
-  <div class='flex flex-col gap-5 mt-5 sm:gap-10 sm:mt-20 w-[90%] lg:w-auto bg-white shadow-2xl rounded-xl p-8 text-gray-900'>
-    <div class="flex lg:items-center gap-1 flex-col items-start lg:flex-row">
+  <div class='flex flex-col mt-5 sm:mt-20 w-[90%] lg:w-auto bg-white shadow-2xl rounded-xl p-8 text-gray-900'>
+    <div class="flex lg:items-center gap-1 flex-col items-start lg:flex-row mb-5">
       <button id="logout_button" class='p-3 bg-red-500 text-white rounded-full font-bold text-xl hover:bg-red-700 transition duration-300 flex-1'>로그아웃</button>
       <a href="/auth/change-password" class='text-center p-3 bg-green-500 text-white rounded-full font-bold text-xl hover:bg-green-700 transition duration-300 flex-1'>비밀번호 변경</a>
     </div>
-    <h1 class='text-2xl sm:text-3xl font-extrabold'>URL 줄이기</h1>
+    <h1 class='text-2xl sm:text-3xl font-extrabold mb-2'>URL 줄이기</h1>
     <div class='flex flex-col sm:flex-row gap-3'>
       <input
         type='text'
@@ -15,18 +15,50 @@
       />
       <button id="shorten_button" class='p-3 bg-blue-500 text-white rounded-full hover:bg-blue-700 transition duration-300'>줄이기</button>
     </div>
-    <div class="flex flex-1 items-center justify-around lg:flex-row flex-col">
-      <div class='flex items-center gap-3 mt-3'>
+    <div class="flex flex-1 items-center justify-start lg:flex-row flex-col mb-2 mt-2">
+      <div class='flex items-center gap-3 h-[40px] mr-2 self-center'>
         <input type="checkbox" id="set_expiry" name="set_expiry" class="w-4 h-4 text-blue-600 bg-gray-100 rounded border-gray-300 focus:ring-blue-500">
         <label for="set_expiry" class='text-sm font-medium text-gray-700'>만료 날짜 설정</label>
       </div>
-      <div class='mt-3' id="expiry_date_container" style="display: none;">
+      <div class='h-[40px]' id="expiry_date_container" style="display: none;">
         <input
           type='datetime-local'
           id='expiry_date'
           name='expiry_date'
-          class='mt-1 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
+          class='p-2 border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 h-[40px]'
           placeholder='만료 날짜를 선택하세요.'
+        />
+      </div>
+    </div>
+    <div class="flex flex-1 items-center justify-start lg:flex-row flex-col mb-2 mt-2">
+      <div class='flex items-center gap-3 h-[40px] mr-2 self-center'>
+        <input type="checkbox" id="set_password" name="set_password" class="w-4 h-4 text-blue-600 bg-gray-100 rounded border-gray-300 focus:ring-blue-500">
+        <label for="set_password" class='text-sm font-medium text-gray-700'>비밀번호 설정</label>
+      </div>
+      <div class='h-[40px]' id="password_container" style="display: none;">
+        <input
+          type='password'
+          id='password_input'
+          name='password_input'
+          class='p-2 border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 h-[40px]'
+          placeholder='비빌번호 설정'
+          autocomplete="new-password"
+        />
+      </div>
+    </div>
+    <div class="flex flex-1 items-center justify-start lg:flex-row flex-col mb-4 mt-2">
+      <div class='flex items-center gap-3 h-[40px] mr-2 self-center'>
+        <input type="checkbox" id="set_url" name="set_url" class="w-4 h-4 text-blue-600 bg-gray-100 rounded border-gray-300 focus:ring-blue-500">
+        <label for="set_url" class='text-sm font-medium text-gray-700'>임의 주소 설정</label>
+      </div>
+      <div class='h-[40px]' id="url_container" style="display: none;">
+        <input
+          type='text'
+          id='url_input'
+          name='url_input'
+          class='p-2 border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 h-[40px]'
+          placeholder='주소 적기'
+          autocomplete="new-url"
         />
       </div>
     </div>
@@ -62,6 +94,10 @@
             <th scope="col"
               class="px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
               만료 여부
+            </th>
+            <th scope="col"
+              class="px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+              비밀번호
             </th>
           </tr>
         </thead>
@@ -102,6 +138,13 @@
               만료되지 않음
               {{/if}}
             </td>
+            <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-700 text-center">
+              {{#if this.password}}
+              있음
+              {{else}}
+              없음
+              {{/if}}
+            </td>
           </tr>
           {{/each}}
         </tbody>
@@ -126,6 +169,10 @@
   let shortenedStats = document.getElementsByClassName('stats');
 
   let shortenedUrls = document.getElementsByClassName('shorten-url');
+
+  let passwordInput = document.getElementById('password_input');
+
+  let urlInput = document.getElementById('url_input');
 
   function formatDateTime(date) {
         let year = date.getFullYear();
@@ -182,12 +229,34 @@
 
   const setExpiry = document.getElementById('set_expiry');
 
+  const setPassword = document.getElementById('set_password');
+
+  const setUrl = document.getElementById('set_url');
+
   setExpiry.addEventListener('change', function() {
     var expiryDateContainer = document.getElementById('expiry_date_container');
     if (this.checked) {
       expiryDateContainer.style.display = 'block';
     } else {
       expiryDateContainer.style.display = 'none';
+    }
+  });
+
+  setPassword.addEventListener('change', function() {
+    var passwordContainer = document.getElementById('password_container');
+    if (this.checked) {
+      passwordContainer.style.display = 'block';
+    } else {
+      passwordContainer.style.display = 'none';
+    }
+  });
+
+  setUrl.addEventListener('change', function() {
+    var urlContainer = document.getElementById('url_container');
+    if (this.checked) {
+      urlContainer.style.display = 'block';
+    } else {
+      urlContainer.style.display = 'none';
     }
   });
 
@@ -219,29 +288,42 @@
       return;
     }
 
-    fetch('/', {
+    const answer = fetch('/', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ url: url.value, expiryDate: setExpiry.checked ? document.getElementById('expiry_date').value : null }),
+      body: JSON.stringify({ 
+        url: url.value, 
+        expiryDate: setExpiry.checked ? document.getElementById('expiry_date').value : null, 
+        password: setPassword.checked ? passwordInput.value : null,
+        customURL: setUrl.checked ? urlInput.value : null,
+      }),
     })
-      .then((res) => res.json())
-      .then((data) => {
-        const { originalURL, shortenedURL } = data;
-        document.getElementById('original_shorten').innerHTML = `
-          <div class='flex flex-col gap-5 p-8 bg-white shadow-2xl rounded-xl'>
-              <div>
-                  <span class='font-extrabold text-gray-900'>원본 URL:</span>
-                  <a href='${originalURL}' target='_blank' class='text-blue-500 underline hover:text-blue-700 transition duration-300'>${originalURL}</a>
-              </div>
-              <div>
-                  <span class='font-extrabold text-gray-900'>줄인 URL:</span>
-                  <a class="cursor-pointer text-blue-500 underline hover:text-blue-700 transition duration-300" onclick='copyToClipboard(event, "${shortenedURL}")'>${targetUrl}${shortenedURL}</a>
-              </div>
-          </div>
-        `;
-      })};
+    .then((response) => {
+      if (response.status === 400) {
+        alert('이미 존재하는 URL 입니다');
+        return;
+      }
+      return response.json();
+    })
+    .then((data) => {
+      const { originalURL, shortenedURL } = data;
+      document.getElementById('original_shorten').innerHTML = `
+        <div class='flex flex-col gap-5 p-8 bg-white shadow-2xl rounded-xl'>
+            <div>
+                <span class='font-extrabold text-gray-900'>원본 URL:</span>
+                <a href='${originalURL}' target='_blank' class='text-blue-500 underline hover:text-blue-700 transition duration-300'>${originalURL}</a>
+            </div>
+            <div>
+                <span class='font-extrabold text-gray-900'>줄인 URL:</span>
+                <a class="cursor-pointer text-blue-500 underline hover:text-blue-700 transition duration-300" onclick='copyToClipboard(event, "${shortenedURL}")'>${targetUrl}${shortenedURL}</a>
+            </div>
+        </div>
+      `;
+    });
+    
+    };
 
     function logout() {
       location.href = '/auth/logout'

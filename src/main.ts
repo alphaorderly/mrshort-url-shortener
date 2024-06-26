@@ -6,6 +6,8 @@ import { UnauthorizedExceptionFilter } from './filter/unauthorized-exception.fil
 import cookieParser from 'cookie-parser';
 import * as expressHandlebars from 'express-handlebars';
 import { NotFoundExceptionFilter } from './filter/notfound-exception.filter';
+import { PasswordRequiredExceptionFilter } from './filter/password-requirement.filter';
+import { AlreadyUrlExistFilter } from './filter/already-custom.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -41,6 +43,8 @@ async function bootstrap() {
   app.use(cookieParser());
   app.useGlobalFilters(new UnauthorizedExceptionFilter());
   app.useGlobalFilters(new NotFoundExceptionFilter());
+  app.useGlobalFilters(new PasswordRequiredExceptionFilter());
+  app.useGlobalFilters(new AlreadyUrlExistFilter());
 
   await app.listen(3000);
 }

@@ -17,6 +17,7 @@
             <h2 class="text-2xl font-extrabold mb-4" id="all-clicks">Total Clicks</h2>
             <h2 class="text-2xl font-extrabold mb-4" id="expire">Expire</h2>
             <h2 class="text-2xl font-extrabold mb-4" id="is-expired">Expire</h2>
+            <h2 class="text-2xl font-extrabold mb-4" id="has-password">Password</h2>
         </div>
         
         <div class="bg-white shadow-2xl rounded-xl p-8 text-gray-900">
@@ -48,6 +49,13 @@
 
         // Set the total clicks
         document.getElementById('all-clicks').textContent = `총 클릭 수: ${short.clickCount}`;
+        
+        // Set the password status
+        if(short.password === null) {
+            document.getElementById('has-password').textContent = `비밀번호: 없음`;
+        } else {
+            document.getElementById('has-password').textContent = `비밀번호: 있음`;
+        }
 
         // Set the expire status
         if(short.deleted === false) {

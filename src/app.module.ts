@@ -12,6 +12,7 @@ import { redisConfig } from './redisConfig';
 import { Click } from './entities/click.entity';
 import { StatModule } from './stat/stat.module';
 import { RegisterModule } from './register/register.module';
+import { AuthService } from './auth/auth.service';
 
 @Module({
   imports: [
@@ -27,6 +28,6 @@ import { RegisterModule } from './register/register.module';
     RegisterModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, AuthService],
 })
 export class AppModule {}
