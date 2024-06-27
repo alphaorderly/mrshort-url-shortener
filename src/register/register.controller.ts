@@ -41,7 +41,7 @@ export class RegisterController {
     res.render('register');
   }
 
-  @Post('')
+  @Post('signup')
   async registerUser(@Body() body: RegisterDto, @Res() res: Response) {
     const { id, password, url } = body;
 

@@ -35,6 +35,16 @@ export class AppService {
     let shortenedURLString = '';
     const shortenedURL = new Shorten();
 
+    // If there is customurl, replace all slashes with empty string
+    if (customURL) {
+      customURL = customURL.replace(/\//g, '');
+
+      // If the custom URL is empty, set it to null
+      if (customURL === '') {
+        customURL = null;
+      }
+    }
+
     shortenedURL.originalURL = originalURL;
     shortenedURL.userID = userID;
     shortenedURL.expiredAt = expire;
