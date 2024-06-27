@@ -234,7 +234,7 @@ export class AppService {
       .getOne();
 
     // If the target URL exists in Redis, delete it
-    if (this.redis.exists(targetUrl.shortenedURL)) {
+    if (this.redis.get(targetUrl.shortenedURL)) {
       this.redis.del(targetUrl.shortenedURL);
     }
 

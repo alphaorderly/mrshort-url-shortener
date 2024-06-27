@@ -5,7 +5,6 @@ import {
   NotFoundException,
   Param,
   Post,
-  Req,
   Res,
   UseGuards,
 } from '@nestjs/common';
@@ -22,10 +21,8 @@ export class RegisterController {
 
   @Get('createurl')
   @UseGuards(JwtAuthGuard)
-  createRegisterUrl(@Req() req) {
-    const userId = req.user.userId;
-
-    const url = this.registerService.createRegisterUrl(userId);
+  createRegisterUrl() {
+    const url = this.registerService.createRegisterUrl();
 
     return new RegisterUrlDto(url);
   }

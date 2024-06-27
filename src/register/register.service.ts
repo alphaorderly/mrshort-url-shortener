@@ -18,18 +18,18 @@ export class RegisterService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  createRegisterUrl(userId: number): string {
+  createRegisterUrl(): string {
     const uuid = uuidv4();
 
-    this.redis.set(uuid, userId.toString(), 'EX', 60 * 60 * 24);
+    this.redis.set(uuid, uuid, 'EX', 60 * 60 * 24);
     // This redis key will expire in 24 hours
 
     return uuid;
   }
 
   verifyRegisterUrl(url: string): Promise<boolean> {
-    return this.redis.exists(url).then((result) => {
-      return result === 1;
+    return this.redis.get(url).then((result) => {
+      return result === url;
     });
   }
 
