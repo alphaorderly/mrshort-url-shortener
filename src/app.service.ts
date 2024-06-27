@@ -37,11 +37,22 @@ export class AppService {
 
     // If there is customurl, replace all slashes with empty string
     if (customURL) {
+      // Remove All whitespaces
+      customURL = customURL.replace(/\s/g, '');
+
+      // Replace all forward slashes
       customURL = customURL.replace(/\//g, '');
+
+      // Remove any forbidden characters (e.g., #, ?, &, etc.)
+      customURL = customURL.replace(/[#?&]/g, '');
 
       // If the custom URL is empty, set it to null
       if (customURL === '') {
         customURL = null;
+      }
+
+      if (customURL && customURL.length > 100) {
+        customURL = customURL.substring(0, 100);
       }
     }
 
