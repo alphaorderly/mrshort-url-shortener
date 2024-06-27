@@ -247,6 +247,10 @@ export class AppService {
       .andWhere('userID = :userID', { userID: userID })
       .execute();
 
+    if (removedShortenedURL.affected === 0) {
+      throw new NotFoundException('URL not found');
+    }
+
     return removedShortenedURL;
   }
 }

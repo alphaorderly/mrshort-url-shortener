@@ -61,15 +61,11 @@ export class AppController {
     const userID = req.user.userId as number;
     const urlID = req.params.urlID as number;
 
-    const response = await this.appService.deleteShortenedURL(urlID, userID);
+    await this.appService.deleteShortenedURL(urlID, userID);
 
-    if (response.affected === 0) {
-      return res.status(404).json('해당 URL을 찾을수 없습니다. URL not found.');
-    } else {
-      return res
-        .status(200)
-        .json('URL이 성공적으로 삭제되었습니다. URL deleted.');
-    }
+    return res
+      .status(200)
+      .json('URL이 성공적으로 삭제되었습니다. URL deleted.');
   }
 
   @Post()
