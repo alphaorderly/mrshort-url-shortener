@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Delete,
   Get,
@@ -11,6 +12,7 @@ import {
 import { AppService } from './app.service';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { Request, Response } from 'express';
+import { shortenRequestDto } from './dtos/shortenRequest.dto';
 
 @Controller()
 export class AppController {
@@ -70,12 +72,16 @@ export class AppController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  async shortenURL(@Req() req, @Res() res: Response) {
+  async shortenURL(
+    @Req() req,
+    @Res() res: Response,
+    @Body() body: shortenRequestDto,
+  ) {
     const userID = req.user.userId;
-    const originalURL = req.body.url;
-    const expire = req.body.expiryDate;
-    const password = req.body.password;
-    const customURL = req.body.customURL;
+    const originalURL = body.url;
+    const expire = body.expiryDate;
+    const password = body.password;
+    const customURL = body.customURL;
 
     let expireDate: Date = null;
     if (expire !== null) {
