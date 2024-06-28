@@ -64,9 +64,13 @@ export class AppService {
       password !== null ? this.authService.hashPassword(password) : null;
 
     if (customURL) {
-      const existingURL = await this.shortenRepository.findOne({
-        where: { shortenedURL: customURL },
-      });
+      const existingURL = await this.shortenRepository
+        .createQueryBuilder('shorten')
+        .where('shorten.shortenedURL = :shortenedURL', {
+          shortenedURL: customURL,
+        })
+        .getOne();
+
       if (existingURL) {
         throw new AlreadyUrlExistException();
       }
@@ -78,9 +82,13 @@ export class AppService {
 
     while (!uniqueShortenedURL) {
       shortenedURLString = Math.random().toString(36).substring(2, 8);
-      const existingURL = await this.shortenRepository.findOne({
-        where: { shortenedURL: shortenedURLString },
-      });
+      const existingURL = await this.shortenRepository
+        .createQueryBuilder('shorten')
+        .where('shorten.shortenedURL = :shortenedURL', {
+          shortenedURL: shortenedURLString,
+        })
+        .getOne();
+
       if (!existingURL) {
         uniqueShortenedURL = true;
       }
@@ -139,9 +147,13 @@ export class AppService {
     const redisOriginal = await this.redis.get(shortenedURL);
 
     if (redisOriginal === null) {
-      const shortenedURLData = await this.shortenRepository.findOne({
-        where: { shortenedURL: shortenedURL, deleted: false },
-      });
+      const shortenedURLData = await this.shortenRepository
+        .createQueryBuilder('shorten')
+        .where('shorten.shortenedURL = :shortenedURL', {
+          shortenedURL: shortenedURL,
+        })
+        .andWhere('shorten.deleted = false')
+        .getOne();
 
       if (!shortenedURLData) {
         throw new NotFoundException('URL has expired');

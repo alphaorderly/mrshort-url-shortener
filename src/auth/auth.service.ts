@@ -23,7 +23,13 @@ export class AuthService {
     username: string,
     password: string,
   ): Promise<User | undefined> {
-    return this.userRepository.findOne({ where: { username, password } });
+    return this.userRepository
+      .createQueryBuilder('user')
+      .where('user.username = :username', { username })
+      .andWhere('user.password = :password', {
+        password: this.hashPassword(password),
+      })
+      .getOne();
   }
 
   async register(
@@ -38,7 +44,7 @@ export class AuthService {
   }
 
   async findAll(): Promise<User[]> {
-    return this.userRepository.find();
+    return this.userRepository.createQueryBuilder('user').getMany();
   }
 
   async login(user: User) {

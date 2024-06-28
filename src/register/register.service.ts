@@ -38,7 +38,11 @@ export class RegisterService {
     password: string,
     url: string,
   ): Promise<User | RegisterErrorDto> {
-    const user = await this.userRepository.find({ where: { username: id } });
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .where('user.username = :id', { id })
+      .getMany();
+
     if (user.length === 1) {
       return new RegisterErrorDto('이미 존재하는 아이디입니다.');
     }

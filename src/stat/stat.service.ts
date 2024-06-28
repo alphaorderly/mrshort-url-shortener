@@ -17,9 +17,11 @@ export class StatService {
     userID: number,
     shortenURL: string,
   ): Promise<[Click[], Shorten]> {
-    const shorten = await this.shortenRepository.findOne({
-      where: { shortenedURL: shortenURL, userID: userID },
-    });
+    const shorten = await this.shortenRepository
+      .createQueryBuilder('shorten')
+      .where('shorten.userID = :userID', { userID })
+      .andWhere('shorten.shortenedURL = :shortenURL', { shortenURL })
+      .getOne();
 
     if (!shorten) {
       throw new NotFoundException();
