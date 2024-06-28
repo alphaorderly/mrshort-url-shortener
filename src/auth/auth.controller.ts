@@ -32,7 +32,9 @@ export class AuthController {
     }
 
     const token = await this.authService.login(user);
+
     res.cookie('jwt', token.access_token, { httpOnly: true });
+    res.cookie('jwt-refresh', token.refresh_token, { httpOnly: true });
     res.redirect('/');
   }
 
@@ -40,6 +42,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   async logout(@Res() res: Response) {
     res.clearCookie('jwt');
+    res.clearCookie('jwt-refresh');
     res.redirect('/');
   }
 

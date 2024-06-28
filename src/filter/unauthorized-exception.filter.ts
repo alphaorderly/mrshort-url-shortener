@@ -12,6 +12,9 @@ export class UnauthorizedExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
 
+    response.clearCookie('jwt');
+    response.clearCookie('jwt-refresh');
+
     response.status(200).render('login');
   }
 }
