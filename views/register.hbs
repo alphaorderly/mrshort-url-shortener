@@ -1,21 +1,20 @@
 
-<section class="bg-gradient-to-r from-blue-500 to-purple-500 text-white min-h-screen flex justify-center items-center p-8">
-    <div class="w-full max-w-md bg-white shadow-2xl rounded-xl p-8 text-gray-900">
-        <h1 class="text-3xl font-extrabold text-center mb-8">회원가입</h1>
+<section class="bg-gradient-to-r from-blue-500 to-purple-500 text-white min-h-screen flex justify-center items-center lg:p-8 p-2">
+    <div class="w-full max-w-md bg-white shadow-2xl rounded-xl lg:p-8 p-4 text-gray-900">
         <form class="space-y-6" onsubmit="validateForm(event)">
             <div>
-                <label for="id" class="block font-medium text-gray-700 mx-4 my-2">아이디</label>
-                <input type="id" id="id" name="id" class="w-full p-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500" autocomplete="new-password" required>
+                <label for="id" class="block font-medium text-gray-700 mb-2">아이디</label>
+                <input type="text" id="id" name="id" class="w-full p-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500" autocomplete="new-password" required>
             </div>
             <div>
-                <label for="password" class="block font-medium text-gray-700 mx-4 my-2">비밀번호</label>
+                <label for="password" class="block font-medium text-gray-700 mb-2">비밀번호</label>
                 <input type="password" id="password" name="password" class="w-full p-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500" autocomplete="new-password" required>
             </div>
             <div>
-                <label for="confirm_password" class="block font-medium text-gray-700 mx-4 my-2">비밀번호 확인</label>
+                <label for="confirm_password" class="block font-medium text-gray-700 mb-2">비밀번호 확인</label>
                 <input type="password" id="confirm_password" name="confirm_password" class="w-full p-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500" autocomplete="new-password" required>
             </div>
-            <button type="submit" class="w-full p-3 bg-blue-500 text-white rounded-full hover:bg-blue-700 transition duration-300 font-bold">회원가입</button>
+            <button type="submit" class="w-full p-3 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition duration-300 font-bold">회원가입</button>
         </form>
     </div>
 </section>

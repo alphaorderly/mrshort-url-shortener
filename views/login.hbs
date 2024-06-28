@@ -1,26 +1,22 @@
 <section class='flex justify-center items-center min-h-screen bg-gradient-to-r from-blue-500 to-purple-500 text-white'>
-  <div class='w-96 h-auto bg-white shadow-2xl rounded-xl p-8'>
-    <form
-      class='flex flex-col justify-center items-center space-y-4'
-      action='/auth/login'
-      method='POST'
-    >
+  <div class='w-full max-w-sm bg-white shadow-2xl rounded-xl p-8'>
+    <form class='flex flex-col space-y-4' action='/auth/login' method='POST'>
       <input
-        class='w-80 h-12 px-4 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-black'
+        class='w-full h-12 px-4 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-black'
         type='text'
         name='username'
         placeholder='아이디'
         required
       />
       <input
-        class='w-80 h-12 px-4 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-black'
+        class='w-full h-12 px-4 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 text-black'
         type='password'
         name='password'
         placeholder='비밀번호'
         required
       />
       <button
-        class='w-80 h-12 bg-green-500 text-white rounded-full hover:bg-green-600 transition duration-300'
+        class='w-full h-12 bg-green-500 text-white rounded-full hover:bg-green-600 transition duration-300'
         type='submit'
       >로그인</button>
     </form>
