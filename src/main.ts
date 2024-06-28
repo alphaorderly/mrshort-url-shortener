@@ -8,9 +8,25 @@ import * as expressHandlebars from 'express-handlebars';
 import { NotFoundExceptionFilter } from './filter/notfound-exception.filter';
 import { PasswordRequiredExceptionFilter } from './filter/password-requirement.filter';
 import { AlreadyUrlExistFilter } from './filter/already-custom.filter';
+import { AuthService } from './auth/auth.service';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  const authService = app.get(AuthService);
+
+  const users = await authService.findAll();
+
+  if (users.length === 0) {
+    const id = process.env.ID;
+    const pw = process.env.PW;
+
+    if (!id || !pw) {
+      return;
+    }
+
+    authService.register(id, pw);
+  }
 
   app.useStaticAssets(join(__dirname, '..', 'public'));
   app.setBaseViewsDir(join(__dirname, '..', 'views'));

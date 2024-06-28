@@ -8,26 +8,29 @@ import { ErrorDto } from 'src/dtos/error.dto';
 
 @Injectable()
 export class AuthService {
-  hashPassword(password: string): string {
-    return createHash('sha256')
-      .update(password + process.env.HASH_SALT)
-      .digest('hex');
-  }
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private readonly jwtService: JwtService,
   ) {}
 
+  hashPassword(password: string): string {
+    return createHash('sha256')
+      .update(password + process.env.HASH_SALT)
+      .digest('hex');
+  }
+
   async validateUser(
     username: string,
     password: string,
   ): Promise<User | undefined> {
+    const hashed = this.hashPassword(password);
+
     return this.userRepository
       .createQueryBuilder('user')
       .where('user.username = :username', { username })
       .andWhere('user.password = :password', {
-        password: this.hashPassword(password),
+        password: hashed,
       })
       .getOne();
   }
@@ -36,9 +39,11 @@ export class AuthService {
     username: string,
     password: string,
   ): Promise<User | undefined> {
+    const hashed = this.hashPassword(password);
+
     const user = this.userRepository.create({
       username,
-      password: this.hashPassword(password),
+      password: hashed,
     });
     return this.userRepository.save(user);
   }

@@ -20,11 +20,9 @@ export class AuthController {
 
   @Post('login')
   async login(@Body() body: LoginBodyDto, @Res() res: Response) {
-    const hashedPassword = this.authService.hashPassword(body.password);
-
     const user = await this.authService.validateUser(
       body.username,
-      hashedPassword,
+      body.password,
     );
 
     if (!user) {
