@@ -2,7 +2,7 @@
 
 <section class='bg-gradient-to-r from-blue-500 to-purple-500 flex flex-col items-center min-h-screen p-2'>
   <p class="hidden" id="target_url">{{targetUrl}}</p>
-  <div class='flex flex-col lg:mt-10 mt-2 w-full max-w-3xl bg-white shadow-lg rounded-lg lg:p-8 p-6'>
+  <div class='flex flex-col lg:mt-10 mt-2 w-full max-w-3xl bg-white/95 shadow-lg rounded-lg lg:p-8 p-6'>
     <div class="flex justify-between items-center mb-5">
       <button id="logout_button" class='p-2 bg-red-500 text-white rounded-full font-medium text-sm hover:bg-red-600 transition duration-300'>로그아웃</button>
       <a href="/auth/change-password" class='p-2 bg-green-500 text-white rounded-full font-medium text-sm hover:bg-green-600 transition duration-300'>비밀번호 변경</a>
@@ -79,7 +79,7 @@
             <th scope="col" class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase whitespace-nowrap">QR 코드 생성</th>
           </tr>
         </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
+        <tbody class="bg-white/95/95 divide-y divide-gray-200">
           {{#each shortenedURLs}}
           <tr>
             <td class="px-4 py-2 text-sm text-gray-700 max-w-xs overflow-x-auto whitespace-nowrap">
@@ -126,7 +126,7 @@
     </div>
     
   </div>
-  <div class="mt-10 w-full max-w-xl bg-white shadow-lg rounded-lg p-6">
+  <div class="mt-10 w-full max-w-xl bg-white/95 shadow-lg rounded-lg p-6">
     <button type="button" id="register-button" class="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white p-3 rounded-lg font-medium">회원가입 URL 생성하기</button>
     <p id="registerUrl" class="mt-3 text-center"></p>
   </div>
@@ -284,7 +284,7 @@
     .then((data) => {
       const { originalURL, shortenedURL } = data;
       document.getElementById('original_shorten').innerHTML = `
-        <div class='flex flex-col gap-5 p-8 bg-white shadow-2xl rounded-xl'>
+        <div class='flex flex-col gap-5 p-8 bg-white/95 shadow-2xl rounded-xl'>
             <div>
                 <span class='font-extrabold text-gray-900'>원본 URL:</span>
                 <a href='${originalURL}' target='_blank' class='text-blue-500 underline hover:text-blue-700 transition duration-300 whitespace-normal overflow-x-scroll break-words'>${originalURL}</a>

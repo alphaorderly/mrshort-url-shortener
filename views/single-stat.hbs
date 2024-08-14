@@ -1,7 +1,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <section class="bg-gradient-to-r from-blue-500 to-purple-500 text-white min-h-screen flex flex-col justify-start items-center lg:p-8 pt-6 space-y-10">
-    <a href="/" class="flex items-center p-4 bg-white shadow-md rounded-full hover:bg-gray-100 transition duration-300">
+    <a href="/" class="flex items-center p-4 bg-white/95 shadow-md rounded-full hover:bg-gray-100 transition duration-300">
         <svg class="w-8 h-8 mr-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
         </svg>
@@ -9,7 +9,7 @@
     </a>
 
     <div class="container mx-auto lg:px-8 lg:py-6 p-2 space-y-10">
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-white shadow-2xl rounded-xl p-8 text-gray-900">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-white/95 shadow-2xl rounded-xl p-8 text-gray-900">
             <div class="p-4 border rounded-lg shadow-sm">
                 <span class="block text-lg font-bold">원본 URL</span>
                 <span class="text-gray-700 break-words" id="original-url"></span>
@@ -36,7 +36,7 @@
             </div>
         </div>
 
-        <div class="bg-white shadow-2xl rounded-xl lg:p-2 lg:pt-1 p-1 text-gray-900">
+        <div class="bg-white/95 shadow-2xl rounded-xl lg:p-2 lg:pt-1 p-1 text-gray-900">
             <h1 class="text-3xl font-extrabold m-3">클릭 그래프</h1>
             <div class="bg-gray-200 shadow-inner rounded-lg p-2">
                 <canvas id="clicksChart" class="w-full h-64"></canvas>
