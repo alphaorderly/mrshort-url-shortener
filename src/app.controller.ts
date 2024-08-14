@@ -26,10 +26,13 @@ export class AppController {
 
     const shortenedURLs = await this.appService.getAllShortenedURLs(userID);
 
+    const serviceName = await process.env.SERVICE_NAME;
+
     return {
       targetUrl: process.env.TARGET_URL,
       shortenedURLs: shortenedURLs,
       target: process.env.TARGET_URL,
+      name: serviceName,
     };
   }
 

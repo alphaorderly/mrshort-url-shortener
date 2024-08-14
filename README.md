@@ -42,7 +42,7 @@ services:
       - '6824:3000'
     environment:
       - JWT_SECRET=ea28f835f9be0be2bbc35481ca04543d88ef2474e9500a7baacb6109d4ff7132abba86bdc14f62c6739cff536a042132f0892a668a2750c9b8e897647f8e1bec
-      JWT_REFRESH_TOKEN=ea28f835f9be0be2bbc35481ca04543d88ef2474e9500a7baacb6109d4ff7132abba86bdc14f62c6739cff536a042132f0892a668a2750c9b8e897647f8e1bec
+      - JWT_REFRESH_TOKEN=ea28f835f9be0be2bbc35481ca04543d88ef2474e9500a7baacb6109d4ff7132abba86bdc14f62c6739cff536a042132f0892a668a2750c9b8e897647f8e1bec
       - HASH_SALT=thisishashsaltforalphaorderly
       - TARGET_URL=http://localhost:6824/
       - ID=example_id
@@ -55,6 +55,7 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_PASSWORD=example_redis
+      - SERVICE_NAME=MrShort
     depends_on:
       - postgres
       - redis
@@ -111,4 +112,5 @@ TARGET_URL : 배포할 url 주소입니다. 개발을 원하시면 유지하시�
   - 끝에 반드시 / 을 붙혀야 합니다.
 ID : 초기 실행시 만들어질 기본 계정의 아이디입니다. // 초기 실행 이후 삭제하셔도 무방합니다.
 PW : 초기 실행시 만들어질 기본 계정의 비밀번호입니다. // 초기 실행 이후 삭제하셔도 무방합니다.
+SERVICE_NAME : 메인 화면에 보여질 이름입니다.
 ```
