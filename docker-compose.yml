@@ -8,6 +8,9 @@ services:
       context: .
       dockerfile: Dockerfile
     image: mrshort-url-shortener:latest
+    # 이 이미지는 레지스트리에 없고 소스에서 직접 빌드합니다. Portainer 의 "Re-pull image" 같은 pull 이
+    # 레지스트리에서 받으려다 실패하지 않도록, 항상 빌드하고 pull 은 건너뛰게 합니다.
+    pull_policy: build
     restart: unless-stopped
     ports:
       - '${APP_PORT:-6824}:3000'
