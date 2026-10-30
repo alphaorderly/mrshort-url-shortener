@@ -1,93 +1,92 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { User } from './entities/user.entity';
-import { Repository } from 'typeorm';
-import { JwtService } from '@nestjs/jwt';
-import { createHash } from 'crypto';
-import { ErrorDto } from 'src/dtos/error.dto';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { Redis } from 'ioredis';
+import { SessionUser } from '../common/request-types';
+import { REDIS } from '../redis/redis.module';
+import { UsersService } from '../users/users.service';
+import { PasswordService } from './password.service';
+import { SessionService } from './session.service';
+
+const MAX_FAILED_LOGINS = 10;
+const LOCK_SECONDS = 15 * 60;
+
+const failKey = (username: string) => `login:fail:${username.toLowerCase()}`;
 
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectRepository(User)
-    private userRepository: Repository<User>,
-    private readonly jwtService: JwtService,
+    private readonly users: UsersService,
+    private readonly passwords: PasswordService,
+    private readonly sessions: SessionService,
+    @Inject(REDIS) private readonly redis: Redis,
   ) {}
 
-  hashPassword(password: string): string {
-    return createHash('sha256')
-      .update(password + process.env.HASH_SALT)
-      .digest('hex');
-  }
-
-  async validateUser(
+  async login(
     username: string,
     password: string,
-  ): Promise<User | undefined> {
-    const hashed = this.hashPassword(password);
+  ): Promise<{ user: SessionUser; sid: string }> {
+    const key = failKey(username);
+    const failed = Number((await this.redis.get(key)) ?? 0);
+    if (failed >= MAX_FAILED_LOGINS) {
+      throw new HttpException(
+        '로그인 시도가 너무 많습니다. 잠시 후 다시 시도하세요.',
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
 
-    return this.userRepository
-      .createQueryBuilder('user')
-      .where('user.username = :username', { username })
-      .andWhere('user.password = :password', {
-        password: hashed,
-      })
-      .getOne();
-  }
+    const found = await this.users.findWithHashByUsername(username);
+    const check = found
+      ? await this.passwords.verify(password, found.passwordHash)
+      : null;
 
-  async register(
-    username: string,
-    password: string,
-  ): Promise<User | undefined> {
-    const hashed = this.hashPassword(password);
+    if (!found || !check?.valid) {
+      if (!found) await this.passwords.verifyAgainstDummy(password);
+      await this.redis.multi().incr(key).expire(key, LOCK_SECONDS).exec();
+      throw new UnauthorizedException(
+        '아이디 또는 비밀번호가 올바르지 않습니다.',
+      );
+    }
 
-    const user = this.userRepository.create({
-      username,
-      password: hashed,
-    });
-    return this.userRepository.save(user);
-  }
+    await this.redis.del(key);
 
-  async findAll(): Promise<User[]> {
-    return this.userRepository.createQueryBuilder('user').getMany();
-  }
+    if (check.needsRehash) {
+      await this.users.updatePasswordHash(
+        found.id,
+        await this.passwords.hash(password),
+      );
+    }
 
-  async login(user: User) {
-    const payload = { username: user.username, sub: user.id };
-
-    const access_token = this.jwtService.sign(payload);
-    const refresh_token = this.jwtService.sign(payload, {
-      secret: process.env.JWT_REFRESH_SECRET,
-      expiresIn: '30d',
-    });
-
-    return {
-      access_token,
-      refresh_token,
-    };
+    const user: SessionUser = { id: found.id, username: found.username };
+    const sid = await this.sessions.create(user);
+    return { user, sid };
   }
 
   async changePassword(
     userId: number,
-    oldPassword: string,
+    currentSid: string,
+    currentPassword: string,
     newPassword: string,
-  ) {
-    const user = await this.userRepository
-      .createQueryBuilder('user')
-      .addSelect('user.password')
-      .where('user.id = :id', { id: userId })
-      .andWhere('user.password = :password', {
-        password: this.hashPassword(oldPassword),
-      })
-      .getOne();
+  ): Promise<void> {
+    const found = await this.users.findWithHashById(userId);
+    const check = found
+      ? await this.passwords.verify(currentPassword, found.passwordHash)
+      : null;
 
-    if (!user) {
-      return new ErrorDto('현재 비밀번호가 일치하지 않습니다.');
+    if (!found || !check?.valid) {
+      throw new BadRequestException('현재 비밀번호가 일치하지 않습니다.');
     }
 
-    user.password = this.hashPassword(newPassword);
-    const changedUser = await this.userRepository.save(user);
-
-    return changedUser;
+    await this.users.updatePasswordHash(
+      userId,
+      await this.passwords.hash(newPassword),
+    );
+    // 다른 기기에서 로그인된 세션은 모두 끊고 지금 세션만 유지한다.
+    await this.sessions.destroyAllForUser(userId, currentSid);
   }
 }

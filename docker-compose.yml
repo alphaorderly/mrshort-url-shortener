@@ -1,0 +1,84 @@
+# Portainer: Stacks > Add stack > Repository 로 바로 배포할 수 있는 compose 파일입니다.
+# 필수 값은 Portainer 의 "Environment variables" 에 입력합니다. (README 의 "배포 전에 채워야 할 값" 참고)
+# 값이 비어 있으면 `${VAR:?...}` 때문에 배포 단계에서 바로 에러가 납니다.
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mrshort-url-shortener:latest
+    restart: unless-stopped
+    ports:
+      - '${APP_PORT:-6824}:3000'
+    environment:
+      TARGET_URL: ${TARGET_URL:-http://localhost:6824/}
+      SERVICE_NAME: ${SERVICE_NAME:-MrShort}
+      # 최초 실행(사용자가 한 명도 없을 때)에만 쓰이는 관리자 계정입니다. (예전 이름 ID / PW 도 인식합니다)
+      ADMIN_ID: ${ADMIN_ID:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      ID: ${ID:-}
+      PW: ${PW:-}
+      # 예전(SHA-256) 비밀번호 해시를 가진 기존 계정/링크가 있을 때만 필요합니다. 새 설치에서는 비워도 됩니다.
+      HASH_SALT: ${HASH_SALT:-}
+      # 리버스 프록시(nginx, Traefik 등) 뒤에서 쓸 때 설정합니다. 예: 1
+      TRUST_PROXY: ${TRUST_PROXY:-false}
+      COOKIE_SECURE: ${COOKIE_SECURE:-auto}
+      SESSION_TTL_DAYS: ${SESSION_TTL_DAYS:-30}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USERNAME: ${POSTGRES_USER:-mrshort}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      DB_DATABASE: ${POSTGRES_DB:-urlshortener}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/api/health').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  postgres:
+    image: postgres:13
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-mrshort}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:-urlshortener}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7.2
+    restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
+    command: ['sh', '-c', 'exec redis-server --requirepass "$$REDIS_PASSWORD"']
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ['CMD-SHELL', 'redis-cli --no-auth-warning -a "$$REDIS_PASSWORD" ping | grep -q PONG']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres-data:
+  redis-data:

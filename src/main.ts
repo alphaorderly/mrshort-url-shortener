@@ -1,68 +1,28 @@
+import 'reflect-metadata';
+import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
-import { join } from 'path';
-import { UnauthorizedExceptionFilter } from './filter/unauthorized-exception.filter';
-import cookieParser from 'cookie-parser';
-import * as expressHandlebars from 'express-handlebars';
-import { NotFoundExceptionFilter } from './filter/notfound-exception.filter';
-import { PasswordRequiredExceptionFilter } from './filter/password-requirement.filter';
-import { AlreadyUrlExistFilter } from './filter/already-custom.filter';
-import { AuthService } from './auth/auth.service';
+import { configureApp } from './bootstrap';
+import { APP_CONFIG, AppConfig } from './config/app.config';
 
-async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
-
-  const authService = app.get(AuthService);
-
-  const users = await authService.findAll();
-
-  if (users.length === 0) {
-    const id = process.env.ID;
-    const pw = process.env.PW;
-
-    if (!id || !pw) {
-      return;
-    }
-
-    authService.register(id, pw);
-  }
-
-  app.useStaticAssets(join(__dirname, '..', 'public'));
-  app.setBaseViewsDir(join(__dirname, '..', 'views'));
-
-  const hbs = expressHandlebars.create({
-    extname: '.hbs',
-    layoutsDir: join(__dirname, '..', 'views', 'layouts'),
-    defaultLayout: 'main',
-    helpers: {
-      formatDateWithoutLib: (dateString: string) => {
-        const date = new Date(dateString);
-        const year = date.getFullYear();
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const day = date.getDate().toString().padStart(2, '0');
-        const hours = date.getHours().toString().padStart(2, '0');
-        const minutes = date.getMinutes().toString().padStart(2, '0');
-        const seconds = date.getSeconds().toString().padStart(2, '0');
-
-        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-      },
-    },
+async function bootstrap(): Promise<void> {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    bodyParser: false,
   });
+  const config = app.get<AppConfig>(APP_CONFIG);
 
-  // Set engine
-  app.engine('hbs', hbs.engine);
-  app.setViewEngine('hbs');
+  configureApp(app, config);
+  await app.listen(config.port, '0.0.0.0');
 
-  app.set('view options', { layout: 'layouts/main' });
-
-  app.use(cookieParser());
-  app.useGlobalFilters(new UnauthorizedExceptionFilter());
-  app.useGlobalFilters(new NotFoundExceptionFilter());
-  app.useGlobalFilters(new PasswordRequiredExceptionFilter());
-  app.useGlobalFilters(new AlreadyUrlExistFilter());
-
-  await app.listen(3000);
+  new Logger('Bootstrap').log(
+    `${config.serviceName} 이(가) ${config.port} 포트에서 실행 중입니다.`,
+  );
 }
 
-bootstrap();
+bootstrap().catch((error: unknown) => {
+  new Logger('Bootstrap').error(
+    error instanceof Error ? (error.stack ?? error.message) : String(error),
+  );
+  process.exit(1);
+});

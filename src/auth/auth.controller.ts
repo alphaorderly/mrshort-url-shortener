@@ -1,73 +1,83 @@
 import {
-  Controller,
-  Post,
   Body,
-  Res,
+  Controller,
   Get,
-  UseGuards,
+  HttpCode,
+  Inject,
+  Post,
   Req,
+  Res,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
+import { Request, Response } from 'express';
+import { CurrentUser } from '../common/current-user.decorator';
+import { Public } from '../common/public.decorator';
+import { SessionUser } from '../common/request-types';
+import { APP_CONFIG, AppConfig } from '../config/app.config';
+import { ChangePasswordDto, LoginDto } from './auth.dto';
 import { AuthService } from './auth.service';
-import { Response } from 'express';
-import { JwtAuthGuard } from './jwt-auth.guard';
-import LoginBodyDto from './dtos/loginBody.dto';
-import { ChangePasswordDto } from './dtos/changePassword.dto';
-import { ErrorDto } from 'src/dtos/error.dto';
+import {
+  clearSessionCookie,
+  readSid,
+  setSessionCookie,
+} from './session-cookie';
+import { SessionService } from './session.service';
 
-@Controller('auth')
+@Controller('api/auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly auth: AuthService,
+    private readonly sessions: SessionService,
+    @Inject(APP_CONFIG) private readonly config: AppConfig,
+  ) {}
 
+  @Public()
   @Post('login')
-  async login(@Body() body: LoginBodyDto, @Res() res: Response) {
-    const user = await this.authService.validateUser(
-      body.username,
-      body.password,
-    );
-
-    if (!user) {
-      return res.status(401).json({ message: 'Invalid credentials' });
-    }
-
-    const token = await this.authService.login(user);
-
-    res.cookie('jwt', token.access_token, { httpOnly: true });
-    res.cookie('jwt-refresh', token.refresh_token, { httpOnly: true });
-    res.redirect('/');
+  @HttpCode(200)
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  async login(
+    @Body() dto: LoginDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<SessionUser> {
+    const { user, sid } = await this.auth.login(dto.username, dto.password);
+    setSessionCookie(req, res, sid, this.config);
+    return user;
   }
 
-  @Get('logout')
-  @UseGuards(JwtAuthGuard)
-  async logout(@Res() res: Response) {
-    res.clearCookie('jwt');
-    res.clearCookie('jwt-refresh');
-    res.redirect('/');
+  @Public()
+  @Post('logout')
+  @HttpCode(204)
+  async logout(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<void> {
+    const sid = readSid(req);
+    if (sid) await this.sessions.destroy(sid);
+    clearSessionCookie(res);
   }
 
-  @Get('change-password')
-  @UseGuards(JwtAuthGuard)
-  async getChangePassword(@Res() res: Response) {
-    res.render('change-password');
+  /** 로그인 상태 확인. 로그인하지 않았어도 오류가 아니라 `{ user: null }` 로 답한다. */
+  @Public()
+  @Get('me')
+  async me(@Req() req: Request): Promise<{ user: SessionUser | null }> {
+    const sid = readSid(req);
+    return { user: sid ? await this.sessions.get(sid) : null };
   }
 
-  @Post('change-password')
-  @UseGuards(JwtAuthGuard)
+  @Post('password')
+  @HttpCode(204)
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   async changePassword(
-    @Body() body: ChangePasswordDto,
-    @Res() res: Response,
-    @Req() req,
-  ) {
-    const userId = req.user.userId;
-    const changedUser = await this.authService.changePassword(
-      userId,
-      body.oldPassword,
-      body.newPassword,
+    @CurrentUser() user: SessionUser,
+    @Req() req: Request,
+    @Body() dto: ChangePasswordDto,
+  ): Promise<void> {
+    await this.auth.changePassword(
+      user.id,
+      req.sid as string,
+      dto.currentPassword,
+      dto.newPassword,
     );
-
-    if (changedUser instanceof ErrorDto) {
-      return res.status(400).json(changedUser);
-    } else {
-      return res.status(200).json('Password changed successfully');
-    }
   }
 }

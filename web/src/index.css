@@ -1,0 +1,185 @@
+@import 'tailwindcss';
+@import '@fontsource/ibm-plex-sans-kr/korean-400.css';
+@import '@fontsource/ibm-plex-sans-kr/korean-600.css';
+@import '@fontsource/ibm-plex-sans-kr/latin-400.css';
+@import '@fontsource/ibm-plex-sans-kr/latin-600.css';
+@import '@fontsource/ibm-plex-mono/latin-400.css';
+@import '@fontsource/ibm-plex-mono/latin-500.css';
+
+/*
+ * 색
+ * 종이/잉크 두 톤에 마커 노랑 하나만 쓴다. 노랑은 흰 바탕에서 대비가 낮아 글자나 선에는 쓰지 않고,
+ * 항상 잉크색 글자 뒤의 배경(형광펜 자국)으로만 쓴다.
+ */
+:root {
+  --paper: #f5f6f4;
+  --surface: #ffffff;
+  --ink: #16201c;
+  --muted: #5d6a64;
+  --line: #d9dfdb;
+  --line-strong: #b4beb8;
+  --marker: #ffd21f;
+  --marker-ink: #16201c;
+  /* 라이트: 글자 아래쪽만 긋는 형광펜 / 다크: 어두운 글자가 읽히도록 글자 전체를 덮는다. */
+  --marker-height: 0.62em;
+  --marker-y: 92%;
+  --danger: #b3261e;
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --paper: #101512;
+  --surface: #171d1a;
+  --ink: #e9eeeb;
+  --muted: #9aa7a0;
+  --line: #27302b;
+  --line-strong: #3a4540;
+  --marker-height: 100%;
+  --marker-y: 50%;
+  --danger: #ff8a80;
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --paper: #101512;
+    --surface: #171d1a;
+    --ink: #e9eeeb;
+    --muted: #9aa7a0;
+    --line: #27302b;
+    --line-strong: #3a4540;
+    --marker-height: 100%;
+    --marker-y: 50%;
+    --danger: #ff8a80;
+    color-scheme: dark;
+  }
+}
+
+@theme inline {
+  --font-sans: 'IBM Plex Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic',
+    system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas,
+    monospace;
+
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-marker: var(--marker);
+  --color-marker-ink: var(--marker-ink);
+  --color-danger: var(--danger);
+
+  --radius-field: 0.5rem;
+  --radius-panel: 0.875rem;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background: var(--marker);
+    color: var(--marker-ink);
+  }
+
+  button,
+  [role='button'],
+  summary {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+}
+
+@layer components {
+  /* 형광펜으로 그은 자국. 글자는 항상 어두운 잉크색을 유지한다. */
+  .marker {
+    background-image: linear-gradient(var(--marker), var(--marker));
+    background-repeat: no-repeat;
+    background-position: 0 var(--marker-y);
+    background-size: 100% var(--marker-height);
+    color: var(--marker-ink);
+    padding-inline: 0.15em;
+    margin-inline: -0.15em;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+
+  /* 링크를 방금 만들었을 때, 사용자의 동작에 대한 응답으로 한 번만 긋는다. */
+  .marker-sweep {
+    animation: marker-sweep 650ms cubic-bezier(0.65, 0, 0.2, 1) both;
+  }
+
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@keyframes marker-sweep {
+  from {
+    background-size: 0% var(--marker-height);
+  }
+  to {
+    background-size: 100% var(--marker-height);
+  }
+}
+
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
