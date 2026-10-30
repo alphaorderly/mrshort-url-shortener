@@ -8,9 +8,7 @@ function run(
   headers: Record<string, string>,
 ) {
   const guard = originGuard({
-    baseUrl: null,
     allowedOrigins: [],
-    trustProxy: false,
     ...config,
   } as AppConfig);
   const lower = Object.fromEntries(
@@ -71,23 +69,8 @@ describe('originGuard', () => {
     expect(run({}, 'POST', { Host: 'a.com' }).next).toHaveBeenCalled();
   });
 
-  it('프록시 뒤에서는 X-Forwarded-Host 와 비교한다', () => {
-    const headers = {
-      Origin: 'https://s.example.com',
-      Host: 'app:3000',
-      'X-Forwarded-Host': 's.example.com',
-    };
-    expect(run({ trustProxy: true }, 'POST', headers).next).toHaveBeenCalled();
-    expect(
-      run({ trustProxy: false }, 'POST', headers).status,
-    ).toHaveBeenCalledWith(403);
-  });
-
-  it('TARGET_URL 과 ALLOWED_ORIGINS 의 호스트는 신뢰한다', () => {
+  it('ALLOWED_ORIGINS 의 호스트는 신뢰한다', () => {
     const headers = { Origin: 'https://s.example.com', Host: 'internal:3000' };
-    expect(
-      run({ baseUrl: 'https://s.example.com/' }, 'POST', headers).next,
-    ).toHaveBeenCalled();
     expect(
       run({ allowedOrigins: ['https://s.example.com'] }, 'POST', headers).next,
     ).toHaveBeenCalled();

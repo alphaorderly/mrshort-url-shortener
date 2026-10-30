@@ -7,6 +7,7 @@ import {
   pgClient,
   resetDatabase,
   resetRedis,
+  secureAgent,
   useE2eEnv,
   waitFor,
 } from './helpers';
@@ -19,7 +20,7 @@ describe('MrShort API (e2e)', () => {
   let admin: TestAgent;
 
   const login = async (username: string, password: string) => {
-    const agent = request.agent(http);
+    const agent = secureAgent(http);
     const res = await agent
       .post('/api/auth/login')
       .send({ username, password });
@@ -42,10 +43,7 @@ describe('MrShort API (e2e)', () => {
     it('헬스체크와 공개 설정을 돌려준다', async () => {
       await request(http).get('/api/health').expect(200, { status: 'ok' });
       const res = await request(http).get('/api/config').expect(200);
-      expect(res.body).toEqual({
-        serviceName: 'MrShort',
-        baseUrl: 'http://short.test/',
-      });
+      expect(res.body).toEqual({ serviceName: 'MrShort' });
     });
 
     it('보안 헤더를 붙이고 서버 정보를 숨긴다', async () => {
@@ -260,7 +258,7 @@ describe('MrShort API (e2e)', () => {
 
     it('다른 사용자의 링크는 보이지 않고 지울 수도 없다', async () => {
       const invite = await admin.post('/api/invites').expect(201);
-      const other = request.agent(http);
+      const other = secureAgent(http);
       await other
         .post('/api/register')
         .send({
@@ -306,7 +304,7 @@ describe('MrShort API (e2e)', () => {
       expect(invite.body.token).toMatch(/^[A-Za-z0-9_-]{32}$/);
       await request(http).get(`/api/invites/${invite.body.token}`).expect(204);
 
-      const agent = request.agent(http);
+      const agent = secureAgent(http);
       const res = await agent
         .post('/api/register')
         .send({

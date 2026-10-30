@@ -2,7 +2,7 @@ import { Clock, Lock, Pencil } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Field, Input } from '@/components/ui/input';
-import { useConfig, useCreateLink } from '@/hooks/queries';
+import { useCreateLink } from '@/hooks/queries';
 import { ApiError, type LinkView } from '@/lib/api';
 import { cn } from '@/lib/cn';
 import { addDays, shortLabel, toLocalInputValue } from '@/lib/format';
@@ -25,7 +25,6 @@ const OPTIONS: { key: Option; label: string; icon: typeof Clock }[] = [
 const PRESET_DAYS = [1, 7, 30];
 
 export function Composer({ onCreated }: { onCreated: (link: LinkView) => void }) {
-  const { data: config } = useConfig();
   const create = useCreateLink();
 
   const [url, setUrl] = useState('');
@@ -93,7 +92,7 @@ export function Composer({ onCreated }: { onCreated: (link: LinkView) => void })
     }
   }
 
-  const prefix = shortLabel(config?.baseUrl ?? null, '');
+  const prefix = shortLabel('');
 
   return (
     <form onSubmit={handleSubmit} noValidate aria-label="짧은 주소 만들기">

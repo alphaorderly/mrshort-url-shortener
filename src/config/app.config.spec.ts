@@ -20,32 +20,11 @@ describe('loadConfig', () => {
     expect(config).toMatchObject({
       port: 3000,
       serviceName: 'MrShort',
-      baseUrl: null,
-      trustProxy: false,
-      cookieSecure: 'auto',
       sessionTtlSeconds: 30 * 24 * 60 * 60,
       admin: null,
       db: { host: 'db', port: 5432 },
       redis: { host: 'redis', port: 6379, db: 0 },
     });
-  });
-
-  it('TARGET_URL 은 항상 / 로 끝나게 정규화한다', () => {
-    expect(
-      loadConfig({ ...base, TARGET_URL: 'https://s.example.com' }).baseUrl,
-    ).toBe('https://s.example.com/');
-    expect(
-      loadConfig({ ...base, TARGET_URL: 'https://s.example.com/x//' }).baseUrl,
-    ).toBe('https://s.example.com/x/');
-  });
-
-  it('잘못된 TARGET_URL 은 거절한다', () => {
-    expect(() => loadConfig({ ...base, TARGET_URL: 'nope' })).toThrow(
-      /TARGET_URL/,
-    );
-    expect(() => loadConfig({ ...base, TARGET_URL: 'ftp://x.com' })).toThrow(
-      /http/,
-    );
   });
 
   it('예전 ID/PW 환경변수도 관리자 계정으로 읽는다', () => {
@@ -73,16 +52,6 @@ describe('loadConfig', () => {
         PW: 'b',
       }).admin,
     ).toEqual({ username: 'a', password: 'b' });
-  });
-
-  it.each([
-    ['true', true],
-    ['false', false],
-    ['1', 1],
-    ['loopback, 10.0.0.0/8', 'loopback, 10.0.0.0/8'],
-    ['', false],
-  ])('TRUST_PROXY=%j', (raw, expected) => {
-    expect(loadConfig({ ...base, TRUST_PROXY: raw }).trustProxy).toBe(expected);
   });
 
   it('숫자 값이 잘못되면 거절한다', () => {

@@ -9,6 +9,7 @@ import {
   pgClient,
   resetDatabase,
   resetRedis,
+  secureAgent,
   useE2eEnv,
 } from './helpers';
 
@@ -89,7 +90,7 @@ describe('기존 DB 호환 (e2e)', () => {
   it('기존 계정의 SHA-256 비밀번호로 로그인하면 argon2 로 바뀐다', async () => {
     expect(await passwordOf('oldadmin')).toMatch(/^[0-9a-f]{64}$/);
 
-    const agent = request.agent(http);
+    const agent = secureAgent(http);
     await agent
       .post('/api/auth/login')
       .send({ username: 'oldadmin', password: 'wrong' })

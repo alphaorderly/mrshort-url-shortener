@@ -8,16 +8,14 @@ import { displayUrl, formatDate, shortLabel, shortUrl } from '@/lib/format';
 
 export function LinkRow({
   link,
-  baseUrl,
   onShowQr,
   onDelete,
 }: {
   link: LinkView;
-  baseUrl: string | null;
   onShowQr: (link: LinkView) => void;
   onDelete: (link: LinkView) => void;
 }) {
-  const label = shortLabel(baseUrl, link.code);
+  const label = shortLabel(link.code);
 
   return (
     <li className="grid gap-x-6 gap-y-3 border-b border-line py-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
@@ -55,7 +53,7 @@ export function LinkRow({
         <span className="tabular mr-2 text-sm text-muted">
           클릭 <strong className="font-semibold text-ink">{link.clickCount.toLocaleString('ko-KR')}</strong>
         </span>
-        <CopyButton text={shortUrl(baseUrl, link.code)} />
+        <CopyButton text={shortUrl(link.code)} />
         <Link
           to={`/app/stats/${encodeURIComponent(link.code)}`}
           className={buttonVariants({ variant: 'ghost', size: 'sm' })}

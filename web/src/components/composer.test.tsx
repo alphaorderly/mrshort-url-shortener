@@ -36,7 +36,7 @@ function setup() {
 
 describe('Composer', () => {
   beforeEach(() => {
-    vi.mocked(api.config).mockResolvedValue({ serviceName: 'MrShort', baseUrl: 'http://s.test/' });
+    vi.mocked(api.config).mockResolvedValue({ serviceName: 'MrShort' });
     vi.mocked(api.createLink).mockReset();
   });
 

@@ -37,11 +37,10 @@ export class AuthController {
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
   async login(
     @Body() dto: LoginDto,
-    @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ): Promise<SessionUser> {
     const { user, sid } = await this.auth.login(dto.username, dto.password);
-    setSessionCookie(req, res, sid, this.config);
+    setSessionCookie(res, sid, this.config);
     return user;
   }
 

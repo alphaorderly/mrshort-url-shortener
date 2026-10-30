@@ -13,7 +13,6 @@ export function readSid(req: Request): string | undefined {
 }
 
 export function setSessionCookie(
-  req: Request,
   res: Response,
   sid: string,
   config: AppConfig,
@@ -21,7 +20,7 @@ export function setSessionCookie(
   res.cookie(SESSION_COOKIE, sid, {
     httpOnly: true,
     sameSite: 'lax',
-    secure: config.cookieSecure === 'auto' ? req.secure : config.cookieSecure,
+    secure: true,
     maxAge: config.sessionTtlSeconds * 1000,
     path: '/',
   });

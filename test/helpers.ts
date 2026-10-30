@@ -3,6 +3,8 @@ import { Test } from '@nestjs/testing';
 import { Redis } from 'ioredis';
 import { join } from 'path';
 import { Client } from 'pg';
+import request from 'supertest';
+import TestAgent from 'supertest/lib/agent';
 import { AppModule } from '../src/app.module';
 import { configureApp } from '../src/bootstrap';
 import { APP_CONFIG, AppConfig } from '../src/config/app.config';
@@ -26,7 +28,6 @@ export function useE2eEnv(): void {
   process.env.ADMIN_ID = ADMIN.username;
   process.env.ADMIN_PASSWORD = ADMIN.password;
   process.env.WEB_DIST = join(__dirname, 'fixtures', 'web');
-  process.env.TARGET_URL = 'http://short.test/';
 
   if (!process.env.DB_DATABASE.includes('e2e')) {
     throw new Error(
@@ -91,4 +92,22 @@ export async function waitFor<T>(
     if (Date.now() > deadline) throw new Error('waitFor: 시간 초과');
     await new Promise((resolve) => setTimeout(resolve, 50));
   }
+}
+
+/**
+ * 세션 쿠키는 Secure 라서 http 로 띄운 테스트 서버에서는 agent 가 쿠키를 다시 보내지 않는다.
+ * 쿠키를 꺼낼 때 https 접속으로 취급해서 로그인 상태가 유지되게 한다.
+ */
+export function secureAgent(
+  server: Parameters<typeof request.agent>[0],
+): TestAgent {
+  const agent = request.agent(server);
+  const jar = (
+    agent as unknown as {
+      jar: { getCookies(access: { secure: boolean }): unknown };
+    }
+  ).jar;
+  const getCookies = jar.getCookies.bind(jar);
+  jar.getCookies = (access) => getCookies({ ...access, secure: true });
+  return agent;
 }

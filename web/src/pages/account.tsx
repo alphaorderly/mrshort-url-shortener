@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Field, Input } from '@/components/ui/input';
 import {
   useChangePassword,
-  useConfig,
   useCreateInvite,
   useMe,
 } from '@/hooks/queries';
@@ -145,11 +144,9 @@ function PasswordForm() {
 }
 
 function InviteForm() {
-  const { data: config } = useConfig();
   const invite = useCreateInvite();
 
-  const base = config?.baseUrl ?? `${window.location.origin}/`;
-  const link = invite.data ? `${base}app/register/${invite.data.token}` : '';
+  const link = invite.data ? `${window.location.origin}/app/register/${invite.data.token}` : '';
 
   return (
     <div className="grid gap-4">

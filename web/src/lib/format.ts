@@ -1,19 +1,11 @@
 /** 복사하거나 QR 로 만들 때 쓰는 완전한 짧은 주소 */
-export function shortUrl(
-  baseUrl: string | null,
-  code: string,
-  origin: string = window.location.origin,
-): string {
-  return `${baseUrl ?? `${origin}/`}${encodeURIComponent(code)}`;
+export function shortUrl(code: string, origin: string = window.location.origin): string {
+  return `${origin}/${encodeURIComponent(code)}`;
 }
 
 /** 화면에 보여 줄 짧은 주소. 프로토콜을 떼고 한글 주소는 읽을 수 있게 그대로 둔다. */
-export function shortLabel(
-  baseUrl: string | null,
-  code: string,
-  origin: string = window.location.origin,
-): string {
-  return `${baseUrl ?? `${origin}/`}${code}`.replace(/^https?:\/\//, '');
+export function shortLabel(code: string, origin: string = window.location.origin): string {
+  return `${origin}/${code}`.replace(/^https?:\/\//, '');
 }
 
 /**

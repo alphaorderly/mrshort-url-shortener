@@ -8,14 +8,12 @@ import { shortLabel, shortUrl } from '@/lib/format';
 
 export function QrDialog({
   link,
-  baseUrl,
   onClose,
 }: {
   link: LinkView | null;
-  baseUrl: string | null;
   onClose: () => void;
 }) {
-  const url = link ? shortUrl(baseUrl, link.code) : '';
+  const url = link ? shortUrl(link.code) : '';
   const [image, setImage] = useState('');
 
   useEffect(() => {
@@ -37,12 +35,12 @@ export function QrDialog({
   return (
     <Dialog open={link !== null} onOpenChange={(open) => !open && onClose()}>
       {link && (
-        <DialogContent title="QR 코드" description={shortLabel(baseUrl, link.code)}>
+        <DialogContent title="QR 코드" description={shortLabel(link.code)}>
           <div className="grid place-items-center rounded-field bg-white p-2">
             {image ? (
               <img
                 src={image}
-                alt={`${shortLabel(baseUrl, link.code)} 주소로 연결되는 QR 코드`}
+                alt={`${shortLabel(link.code)} 주소로 연결되는 QR 코드`}
                 width={280}
                 height={280}
                 className="size-[280px] max-w-full"
