@@ -57,9 +57,12 @@ export class AuthController {
     clearSessionCookie(res);
   }
 
+  /** 로그인 상태 확인. 로그인하지 않았어도 오류가 아니라 `{ user: null }` 로 답한다. */
+  @Public()
   @Get('me')
-  me(@CurrentUser() user: SessionUser): SessionUser {
-    return user;
+  async me(@Req() req: Request): Promise<{ user: SessionUser | null }> {
+    const sid = readSid(req);
+    return { user: sid ? await this.sessions.get(sid) : null };
   }
 
   @Post('password')

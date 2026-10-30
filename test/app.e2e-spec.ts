@@ -64,7 +64,7 @@ describe('MrShort API (e2e)', () => {
   describe('인증', () => {
     it('로그인 없이는 보호된 API 를 쓸 수 없다', async () => {
       await request(http).get('/api/links').expect(401);
-      await request(http).get('/api/auth/me').expect(401);
+      await request(http).get('/api/auth/me').expect(200, { user: null });
       await request(http)
         .post('/api/links')
         .send({ url: 'https://a.com' })
@@ -95,7 +95,7 @@ describe('MrShort API (e2e)', () => {
       expect(cookie).toMatch(/SameSite=Lax/i);
       await admin
         .get('/api/auth/me')
-        .expect(200, { id: res.body.id, username: ADMIN.username });
+        .expect(200, { user: { id: res.body.id, username: ADMIN.username } });
     });
 
     it('같은 계정으로 10번 실패하면 잠긴다', async () => {
@@ -371,7 +371,7 @@ describe('MrShort API (e2e)', () => {
         .expect(204);
 
       await first.agent.get('/api/auth/me').expect(200);
-      await second.agent.get('/api/auth/me').expect(401);
+      await second.agent.get('/api/auth/me').expect(200, { user: null });
 
       expect((await login(ADMIN.username, ADMIN.password)).res.status).toBe(
         401,
@@ -384,7 +384,8 @@ describe('MrShort API (e2e)', () => {
     it('로그아웃하면 세션이 사라진다', async () => {
       const { agent } = await login(ADMIN.username, 'brand-new-password');
       await agent.post('/api/auth/logout').expect(204);
-      await agent.get('/api/auth/me').expect(401);
+      await agent.get('/api/auth/me').expect(200, { user: null });
+      await agent.get('/api/links').expect(401);
     });
   });
 
