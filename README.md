@@ -24,7 +24,62 @@
 
 ---
 
-## 배포
+## 배포 전에 채워야 할 값
+
+배포하기 전에 아래 값을 정해 두세요. 예시 파일은 없고, 배포 방식에 따라 입력하는 곳만 다릅니다.
+
+- **Portainer**: Stack 화면의 **Environment variables** 에 `이름` 과 `값` 을 하나씩 추가합니다. (_Advanced mode_ 에서는 `이름=값` 을 줄마다 붙여넣을 수 있습니다)
+- **docker compose**: 프로젝트 루트에 `.env` 파일을 만들고 `이름=값` 형태로 한 줄에 하나씩 적습니다.
+
+비밀번호는 `openssl rand -hex 24` 처럼 특수문자(`$`, `#`, 공백 등)가 없는 값을 권장합니다.
+
+### 1. 반드시 채워야 하는 값
+
+비어 있으면 배포 단계에서 `... is required` 에러가 납니다.
+
+| 이름                | 설명                                |
+| ------------------- | ----------------------------------- |
+| `POSTGRES_PASSWORD` | PostgreSQL 비밀번호 (직접 정하세요) |
+| `REDIS_PASSWORD`    | Redis 비밀번호 (직접 정하세요)      |
+
+### 2. 첫 배포라면 채워야 하는 값
+
+사용자가 한 명도 없을 때만 쓰이는 첫 로그인용 계정입니다. 로그인한 뒤에는 지워도 됩니다.
+채우지 않으면 서버는 실행되지만 로그인할 계정이 없습니다. (로그에 경고가 남습니다)
+
+| 이름                         | 설명                                                |
+| ---------------------------- | --------------------------------------------------- |
+| `ADMIN_ID`                   | 관리자 아이디                                       |
+| `ADMIN_PASSWORD`             | 관리자 비밀번호 (8자 이상 권장)                     |
+
+예전 이름 `ID` / `PW` 로 넣어도 인식합니다.
+
+### 3. 내 환경에 맞게 채울 값 (비우면 기본값)
+
+| 이름              | 기본값                    | 언제 바꾸나                                                              |
+| ----------------- | ------------------------- | ------------------------------------------------------------------------ |
+| `TARGET_URL`      | `http://localhost:6824/`  | 실제 접속 주소로. 짧은 주소 앞에 붙습니다 (예: `https://s.example.com/`) |
+| `APP_PORT`        | `6824`                    | 호스트에서 열 포트를 바꾸고 싶을 때 (컨테이너 내부 포트는 3000 고정)     |
+| `SERVICE_NAME`    | `MrShort`                 | 화면 왼쪽 위에 보일 이름을 바꾸고 싶을 때                                |
+| `TRUST_PROXY`     | `false`                   | nginx, Traefik 같은 리버스 프록시 뒤에서 운영하면 `1` 또는 `true`        |
+| `COOKIE_SECURE`   | `auto`                    | `auto` 는 https 로 접속했을 때만 쿠키에 `Secure` 를 붙입니다. 고정하려면 `true` / `false` |
+| `SESSION_TTL_DAYS`| `30`                      | 로그인을 유지할 일수                                                     |
+| `ALLOWED_ORIGINS` | (비어 있음)               | 같은 사이트가 아닌 출처에서 오는 쓰기 요청을 허용할 때만 (쉼표로 구분)   |
+| `POSTGRES_USER`   | `mrshort`                 | PostgreSQL 사용자 이름                                                   |
+| `POSTGRES_DB`     | `urlshortener`            | PostgreSQL DB 이름                                                       |
+
+> `TRUST_PROXY` 를 설정하지 않으면 리버스 프록시 뒤에서는 모든 접속자가 프록시 IP 로 보여 로그인 시도 제한이 의도대로 동작하지 않고,
+> https 로 접속해도 쿠키에 `Secure` 가 붙지 않습니다.
+
+### 4. 이전 버전에서 업데이트할 때만 채울 값
+
+| 이름        | 설명                                                                                          |
+| ----------- | --------------------------------------------------------------------------------------------- |
+| `HASH_SALT` | **이전 버전에서 쓰던 값을 그대로** 넣으세요. 새로 설치한다면 비워 두세요. 아래 "업데이트" 참고 |
+
+---
+
+## 배포 방법
 
 저장소의 `docker-compose.yml` 하나로 앱 + PostgreSQL + Redis 가 함께 배포됩니다.
 이미지는 Git 소스에서 직접 빌드되며, DB/Redis 는 외부로 포트를 열지 않고 named volume 에 데이터를 저장합니다.
@@ -37,17 +92,16 @@
    - **Repository URL** : 이 저장소의 주소 (private 이면 _Authentication_ 을 켜고 토큰 입력)
    - **Repository reference** : `refs/heads/main`
    - **Compose path** : `docker-compose.yml`
-4. **Environment variables** 에서 _Advanced mode_ 를 켜고 [`.env.example`](.env.example) 내용을 붙여넣은 뒤 값을 채웁니다.
-   - `POSTGRES_PASSWORD`, `REDIS_PASSWORD` 가 비어 있으면 배포 단계에서 `... is required` 에러가 납니다.
-   - 첫 배포라면 `ADMIN_ID`, `ADMIN_PASSWORD` 도 채우세요. (첫 로그인용 계정입니다)
+4. **Environment variables** 에 위의 "배포 전에 채워야 할 값" 을 입력합니다. (1번은 필수, 2번은 첫 배포 때)
 5. **Deploy the stack** 을 누릅니다.
 
 업데이트는 stack 상세 화면에서 **Pull and redeploy** 를 누르면 됩니다. (_GitOps updates_ 를 켜면 자동으로 반영됩니다.)
 
 ### 일반 docker compose
 
+프로젝트 루트에 `.env` 파일을 만들어 위의 값을 적은 뒤 실행합니다.
+
 ```bash
-cp .env.example .env   # 값 채우기
 docker compose up -d --build
 ```
 
@@ -58,13 +112,7 @@ git pull
 docker compose up -d --build
 ```
 
-### HTTPS / 리버스 프록시
-
-nginx, Traefik 같은 리버스 프록시 뒤에서 운영한다면 `TRUST_PROXY=1` 을 설정하세요.
-설정하지 않으면 모든 접속자가 프록시 IP 로 보여서 로그인 시도 제한이 의도대로 동작하지 않고,
-https 로 접속해도 쿠키에 `Secure` 속성이 붙지 않습니다. `TARGET_URL` 은 실제 접속 주소(예: `https://s.example.com/`)로 맞추세요.
-
-### 이전 버전에서 업데이트할 때
+### 업데이트 (이전 버전에서 올라올 때)
 
 데이터베이스는 그대로 쓸 수 있고, 시작할 때 필요한 변경(`shorten.createdAt` 컬럼과 인덱스 추가)이 자동으로 적용됩니다. 기존 링크 주소(`/<코드>`)도 그대로 동작합니다.
 
@@ -73,30 +121,6 @@ https 로 접속해도 쿠키에 `Secure` 속성이 붙지 않습니다. `TARGET
   로그인하거나 링크를 열 때 성공하면 argon2 해시로 자동 교체됩니다. 모두 교체된 뒤에는 비워도 됩니다.
 - 로그인 방식이 서버 세션으로 바뀌어서 업데이트 직후 모두 한 번 다시 로그인해야 합니다.
 - 예전 초대 링크(`/register/url/...`)는 새 화면으로 연결되지만, 업데이트 전에 만든 초대 링크는 쓸 수 없습니다. 새로 만드세요.
-- 예전 `ID` / `PW` 환경변수도 계속 인식합니다.
-
----
-
-## 환경변수
-
-`.env.example` 참고.
-
-| 변수                           | 필수 | 기본값                    | 설명                                                                 |
-| ------------------------------ | ---- | ------------------------- | -------------------------------------------------------------------- |
-| `POSTGRES_PASSWORD`            | O    |                           | PostgreSQL 비밀번호                                                  |
-| `REDIS_PASSWORD`               | O    |                           | Redis 비밀번호                                                       |
-| `ADMIN_ID` / `ADMIN_PASSWORD`  | 최초 |                           | 사용자가 한 명도 없을 때 만들어질 계정. 첫 실행 후에는 지워도 됩니다 |
-| `TARGET_URL`                   |      | `http://localhost:6824/`  | 서비스 주소. 짧은 주소 앞에 붙습니다                                 |
-| `APP_PORT`                     |      | `6824`                    | 호스트에 열 포트                                                     |
-| `SERVICE_NAME`                 |      | `MrShort`                 | 화면에 보여질 이름                                                   |
-| `TRUST_PROXY`                  |      | `false`                   | 리버스 프록시 뒤에서 운영하면 `1` 또는 `true`                        |
-| `COOKIE_SECURE`                |      | `auto`                    | 쿠키 `Secure` 속성. `auto` 는 https 접속일 때만 붙입니다             |
-| `ALLOWED_ORIGINS`              |      |                           | 같은 사이트가 아닌 출처의 쓰기 요청을 허용할 때만 (쉼표 구분)        |
-| `SESSION_TTL_DAYS`             |      | `30`                      | 로그인 유지 기간                                                     |
-| `HASH_SALT`                    |      |                           | 이전 버전 계정/링크 비밀번호 호환용. 새 설치는 비워 두세요           |
-| `POSTGRES_USER`, `POSTGRES_DB` |      | `mrshort`, `urlshortener` | PostgreSQL 사용자 / DB 이름                                          |
-
-> DB 가 비어 있는데 `ADMIN_ID` / `ADMIN_PASSWORD` 가 없으면 서버는 실행되지만 로그인할 계정이 없습니다. (로그에 경고가 남습니다)
 
 ---
 
@@ -108,14 +132,33 @@ https 로 접속해도 쿠키에 `Secure` 속성이 붙지 않습니다. `TARGET
 # 1. PostgreSQL + Redis 실행
 docker compose -f docker-compose.dev.yml up -d
 
-# 2. 백엔드 (http://localhost:3000)
+# 2. 프로젝트 루트에 .env 를 만들고 아래 "로컬 개발용 값" 을 채운 뒤 백엔드 실행 (http://localhost:3000)
 yarn install
-cp .env.example .env     # 아래 "로컬 개발용" 값의 주석을 풀고, ADMIN_ID / ADMIN_PASSWORD 도 채웁니다
 yarn start:dev
 
 # 3. 프론트엔드 (http://localhost:5173, /api 는 3000 으로 프록시)
 cd web && yarn install && yarn dev
 ```
+
+### 로컬 개발용 값
+
+`docker-compose.dev.yml` 이 띄우는 DB/Redis 에 맞춘 값입니다. (개발용이며 운영에서 쓰면 안 됩니다)
+
+| 이름               | 값          | 설명                                          |
+| ------------------ | ----------- | --------------------------------------------- |
+| `DB_HOST`          | `localhost` |                                               |
+| `DB_PORT`          | `5432`      |                                               |
+| `DB_USERNAME`      | `mrshort`   |                                               |
+| `DB_PASSWORD`      | `devpass`   |                                               |
+| `DB_DATABASE`      | `mrshort`   |                                               |
+| `REDIS_HOST`       | `localhost` |                                               |
+| `REDIS_PORT`       | `6379`      |                                               |
+| `REDIS_PASSWORD`   | `devpass`   |                                               |
+| `ADMIN_ID`         | 원하는 값   | 첫 로그인용 계정                              |
+| `ADMIN_PASSWORD`   | 원하는 값   |                                               |
+| `TARGET_URL`       | `http://localhost:3000/` | 짧은 주소 앞에 붙는 주소         |
+
+컨테이너 없이 서버를 직접 실행할 때만 쓰는 값도 있습니다: `PORT`(기본 `3000`), `REDIS_DB`(기본 `0`), `WEB_DIST`(기본 `./web/dist`, 빌드된 프론트엔드 위치).
 
 ### 테스트
 

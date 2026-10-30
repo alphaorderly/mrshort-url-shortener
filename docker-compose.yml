@@ -1,5 +1,5 @@
 # Portainer: Stacks > Add stack > Repository 로 바로 배포할 수 있는 compose 파일입니다.
-# 필수 값은 Portainer 의 "Environment variables" 에 입력합니다. (.env.example 참고)
+# 필수 값은 Portainer 의 "Environment variables" 에 입력합니다. (README 의 "배포 전에 채워야 할 값" 참고)
 # 값이 비어 있으면 `${VAR:?...}` 때문에 배포 단계에서 바로 에러가 납니다.
 
 services:
@@ -24,6 +24,7 @@ services:
       # 리버스 프록시(nginx, Traefik 등) 뒤에서 쓸 때 설정합니다. 예: 1
       TRUST_PROXY: ${TRUST_PROXY:-false}
       COOKIE_SECURE: ${COOKIE_SECURE:-auto}
+      SESSION_TTL_DAYS: ${SESSION_TTL_DAYS:-30}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-}
       DB_HOST: postgres
       DB_PORT: 5432

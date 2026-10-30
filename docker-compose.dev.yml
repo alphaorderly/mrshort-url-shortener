@@ -3,7 +3,7 @@
 #   docker compose -f docker-compose.dev.yml up -d
 #   docker compose -f docker-compose.dev.yml exec postgres createdb -U mrshort mrshort_e2e
 #
-# 이 값들은 개발용이며 운영에서 쓰면 안 됩니다. (.env.example 의 개발용 값과 같습니다)
+# 이 값들은 개발용이며 운영에서 쓰면 안 됩니다. (README 의 "로컬 개발용 값" 과 같습니다)
 
 services:
   postgres:
