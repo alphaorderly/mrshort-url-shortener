@@ -1,17 +1,27 @@
-FROM node:18
-
+FROM node:22-slim AS base
 WORKDIR /app
+COPY package.json yarn.lock ./
 
-COPY package.json ./
+# 런타임에 필요한 의존성만 설치
+FROM base AS prod-deps
+RUN yarn install --frozen-lockfile --production && yarn cache clean
 
-COPY yarn.lock ./
-
-RUN yarn install
-
+# 빌드용 (devDependencies 포함)
+FROM base AS build
+RUN yarn install --frozen-lockfile
 COPY . .
-
-EXPOSE 3000
-
 RUN yarn build
 
-CMD ["yarn", "start:prod"]
+FROM node:22-slim AS runtime
+ENV NODE_ENV=production
+WORKDIR /app
+
+COPY --chown=node:node package.json ./
+COPY --chown=node:node --from=prod-deps /app/node_modules ./node_modules
+COPY --chown=node:node --from=build /app/dist ./dist
+COPY --chown=node:node public ./public
+COPY --chown=node:node views ./views
+
+USER node
+EXPOSE 3000
+CMD ["node", "dist/main"]

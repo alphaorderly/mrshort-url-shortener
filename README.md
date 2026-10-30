@@ -29,88 +29,67 @@
 
 ## 배포법
 
-- 도커를 사용합니다.
-- ports 의 6824를 다른 포트로 수정해 포트를 다르게 사용할수 있습니다.
-- DB는 기본적으로 내부에서만 접근 가능합니다.
+저장소의 `docker-compose.yml` 하나로 앱 + PostgreSQL + Redis 가 함께 배포됩니다.
+이미지는 Git 소스에서 직접 빌드되며, DB/Redis 는 외부로 포트를 열지 않고 named volume 에 데이터를 저장합니다.
 
-```
-version: '3.8'
-services:
-  app:
-    image: ilov1112/url-shortener-alpha:latest
-    ports:
-      - '6824:3000'
-    environment:
-      - JWT_SECRET=ea28f835f9be0be2bbc35481ca04543d88ef2474e9500a7baacb6109d4ff7132abba86bdc14f62c6739cff536a042132f0892a668a2750c9b8e897647f8e1bec
-      - JWT_REFRESH_TOKEN=ea28f835f9be0be2bbc35481ca04543d88ef2474e9500a7baacb6109d4ff7132abba86bdc14f62c6739cff536a042132f0892a668a2750c9b8e897647f8e1bec
-      - HASH_SALT=thisishashsaltforalphaorderly
-      - TARGET_URL=http://localhost:6824/
-      - ID=example_id
-      - PW=example_pw
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_USERNAME=example_user
-      - DB_PASSWORD=example_password
-      - DB_DATABASE=urlshortener
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=example_redis
-      - SERVICE_NAME=MrShort
-    depends_on:
-      - postgres
-      - redis
-    networks:
-      - urlshortener
+### Portainer (Git 저장소 방식)
 
-  postgres:
-    image: postgres:13
-    environment:
-      POSTGRES_USER: example_user
-      POSTGRES_PASSWORD: example_password
-      POSTGRES_DB: urlshortener
-    volumes:
-      - ./postgres-data:/var/lib/postgresql/data
-    networks:
-      - urlshortener
+1. **Stacks → Add stack** 을 선택합니다.
+2. **Build method** 를 **Repository** 로 선택합니다.
+3. 아래 값을 입력합니다.
+   - **Repository URL** : 이 저장소의 주소 (private 이면 _Authentication_ 을 켜고 토큰 입력)
+   - **Repository reference** : `refs/heads/main`
+   - **Compose path** : `docker-compose.yml`
+4. **Environment variables** 에서 _Advanced mode_ 를 켜고 [`.env.example`](.env.example) 내용을 붙여넣은 뒤 값을 채웁니다.
+   - 필수 값이 비어 있으면 배포 단계에서 `... is required` 에러가 납니다.
+5. **Deploy the stack** 을 누릅니다.
 
-  redis:
-    image: redis:7.2
-    command: ['redis-server', '--requirepass', 'example_redis']
-    volumes:
-      - ./data:/data
-    restart: always
-    networks:
-      - urlshortener
+업데이트는 stack 상세 화면에서 **Pull and redeploy** 를 누르면 됩니다. (Git 최신 커밋 기준으로 다시 빌드됩니다. _GitOps updates_ 를 켜면 자동으로 반영됩니다.)
 
-networks:
-  urlshortener:
-    driver: bridge
+### 일반 docker compose
 
+```bash
+cp .env.example .env   # 값 채우기
+docker compose up -d --build
 ```
 
-- 위 내용을 docker-compose.yml 로 만들어줍니다.
-- 그리고 같은 디렉토리에서 docker-compose up -d 를 실행합니다.
+업데이트:
+
+```bash
+git pull
+docker compose up -d --build
+```
 
 ---
 
-### 업데이트
+## 환경변수
 
-- docker compose pull
-- docker compose up -d
+`.env.example` 참고. 시크릿은 `openssl rand -hex 64` 로 생성하세요.
+
+| 변수                 | 필수 | 기본값                   | 설명                                                                      |
+| -------------------- | ---- | ------------------------ | ------------------------------------------------------------------------- |
+| `JWT_SECRET`         | O    |                          | access token 서명용 secret                                                |
+| `JWT_REFRESH_SECRET` | O    |                          | refresh token 서명용 secret. **`JWT_SECRET` 과 다른 값**을 사용하세요     |
+| `HASH_SALT`          | O    |                          | 비밀번호 해시 솔트. 운영 중 변경하면 기존 계정 로그인이 불가능해집니다    |
+| `POSTGRES_PASSWORD`  | O    |                          | PostgreSQL 비밀번호                                                       |
+| `REDIS_PASSWORD`     | O    |                          | Redis 비밀번호                                                            |
+| `ID` / `PW`          | 최초 |                          | 사용자가 한 명도 없을 때 만들어질 기본 계정. 첫 실행 후에는 지워도 됩니다 |
+| `TARGET_URL`         |      | `http://localhost:6824/` | 서비스 주소. **끝에 반드시 `/`** 를 붙이세요                              |
+| `APP_PORT`           |      | `6824`                   | 호스트에 열 포트                                                          |
+| `SERVICE_NAME`       |      | `MrShort`                | 메인 화면에 보여질 이름                                                   |
+| `POSTGRES_USER`      |      | `mrshort`                | PostgreSQL 사용자                                                         |
+| `POSTGRES_DB`        |      | `urlshortener`           | PostgreSQL DB 이름                                                        |
+
+> 첫 배포 시에는 반드시 `ID` / `PW` 를 설정하세요. DB 가 비어 있는데 둘 다 없으면 서버가 기동되지 않습니다.
 
 ---
 
-## 도커 환경변수 목록
+## 데이터 / 백업
 
-- 기타 환경변수는 잘 모르시겠으면 건드리시지 말고 아래 환경변수만 변경해 주세요
+- 데이터는 named volume `postgres-data`, `redis-data` 에 저장됩니다. (Portainer → Volumes 에서 확인)
+- stack 을 삭제할 때 **Remove associated volumes** 를 체크하지 않으면 데이터가 유지됩니다.
+- PostgreSQL 백업:
 
-```
-JWT_SECRET : jwt 토큰 secret입니다. 쉘에서 openssl rand -hex 64 를 실행해 생성 후 넣습니다.
-JWT_REFRESH_TOKEN : refresh jwt 토큰 secret 입니다. 반드시! JWT SECRET 과 다른것을 사용하세요!
-HASH_SALT : 비밀번호 해시 솔트입니다. jwt_secret 과 같이 생성 후 넣습니다.
-TARGET_URL : 배포할 url 주소입니다. 개발을 원하시면 유지하시고 아니면 바꿔주세요
-  - 끝에 반드시 / 을 붙혀야 합니다.
-ID : 초기 실행시 만들어질 기본 계정의 아이디입니다. // 초기 실행 이후 삭제하셔도 무방합니다.
-PW : 초기 실행시 만들어질 기본 계정의 비밀번호입니다. // 초기 실행 이후 삭제하셔도 무방합니다.
-SERVICE_NAME : 메인 화면에 보여질 이름입니다.
+```bash
+docker compose exec postgres sh -c 'pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB"' > backup.sql
 ```
