@@ -1,33 +1,43 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
-import { ConfigModule } from '@nestjs/config';
-import { Shorten } from './entities/shorten.entity';
-import { User } from './auth/entities/user.entity';
-import { postgresConfig } from './postgresConfig';
-import { RedisModule } from '@liaoliaots/nestjs-redis';
-import { redisConfig } from './redisConfig';
-import { Click } from './entities/click.entity';
-import { StatModule } from './stat/stat.module';
-import { RegisterModule } from './register/register.module';
-import { AuthService } from './auth/auth.service';
+import { SessionGuard } from './auth/session.guard';
+import { APP_CONFIG, AppConfig } from './config/app.config';
+import { AppConfigModule } from './config/config.module';
+import { buildDataSourceOptions } from './database/typeorm.config';
+import { InvitesModule } from './invites/invites.module';
+import { LinksModule } from './links/links.module';
+import { MetaModule } from './meta/meta.module';
+import { RedisModule } from './redis/redis.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-      envFilePath: '.env',
+    AppConfigModule,
+    RedisModule,
+    TypeOrmModule.forRootAsync({
+      inject: [APP_CONFIG],
+      useFactory: (config: AppConfig) => ({
+        ...buildDataSourceOptions(config.db),
+        migrationsRun: true,
+      }),
     }),
-    TypeOrmModule.forRoot(postgresConfig),
-    RedisModule.forRoot(redisConfig),
+    ThrottlerModule.forRoot({
+      throttlers: [{ ttl: 60_000, limit: 300 }],
+      skipIf: () => process.env.THROTTLE_DISABLED === 'true',
+    }),
+    UsersModule,
     AuthModule,
-    TypeOrmModule.forFeature([User, Shorten, Click]),
-    StatModule,
-    RegisterModule,
+    InvitesModule,
+    MetaModule,
+    // `/:code` 라우트를 가진 모듈은 마지막에 둔다.
+    LinksModule,
   ],
-  controllers: [AppController],
-  providers: [AppService, AuthService],
+  providers: [
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_GUARD, useClass: SessionGuard },
+  ],
 })
 export class AppModule {}
