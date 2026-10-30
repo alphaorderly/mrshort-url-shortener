@@ -11,12 +11,10 @@ import { shortLabel } from '@/lib/format';
 
 export function DeleteDialog({
   link,
-  baseUrl,
   onClose,
   onDeleted,
 }: {
   link: LinkView | null;
-  baseUrl: string | null;
   onClose: () => void;
   onDeleted?: () => void;
 }) {
@@ -42,7 +40,7 @@ export function DeleteDialog({
           description={
             <>
               <span className="break-all font-mono text-ink">
-                {shortLabel(baseUrl, link.code)}
+                {shortLabel(link.code)}
               </span>{' '}
               주소로 접속해도 더 이상 열리지 않고, 클릭 기록도 함께 삭제됩니다.
               되돌릴 수 없습니다.

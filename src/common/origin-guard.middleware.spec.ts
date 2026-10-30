@@ -8,7 +8,6 @@ function run(
   headers: Record<string, string>,
 ) {
   const guard = originGuard({
-    baseUrl: null,
     allowedOrigins: [],
     trustProxy: false,
     ...config,
@@ -83,11 +82,8 @@ describe('originGuard', () => {
     ).toHaveBeenCalledWith(403);
   });
 
-  it('TARGET_URL 과 ALLOWED_ORIGINS 의 호스트는 신뢰한다', () => {
+  it('ALLOWED_ORIGINS 의 호스트는 신뢰한다', () => {
     const headers = { Origin: 'https://s.example.com', Host: 'internal:3000' };
-    expect(
-      run({ baseUrl: 'https://s.example.com/' }, 'POST', headers).next,
-    ).toHaveBeenCalled();
     expect(
       run({ allowedOrigins: ['https://s.example.com'] }, 'POST', headers).next,
     ).toHaveBeenCalled();

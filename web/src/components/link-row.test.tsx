@@ -23,7 +23,6 @@ function setup(link: Partial<LinkView> = {}) {
       <ul>
         <LinkRow
           link={{ ...base, ...link }}
-          baseUrl="https://s.example.com/"
           onShowQr={onShowQr}
           onDelete={onDelete}
         />
@@ -36,7 +35,7 @@ function setup(link: Partial<LinkView> = {}) {
 describe('LinkRow', () => {
   it('짧은 주소, 원본 주소, 클릭 수를 보여 준다', () => {
     setup();
-    expect(screen.getByText('s.example.com/abc1234')).toBeInTheDocument();
+    expect(screen.getByText(`${window.location.host}/abc1234`)).toBeInTheDocument();
     expect(screen.getByText('example.com/very/long/path')).toBeInTheDocument();
     expect(screen.getByText('1,234')).toBeInTheDocument();
   });
@@ -69,10 +68,10 @@ describe('LinkRow', () => {
   it('QR 과 삭제 버튼은 어느 링크인지 알 수 있는 이름을 가진다', async () => {
     const { user, onShowQr, onDelete } = setup();
 
-    await user.click(screen.getByRole('button', { name: 's.example.com/abc1234 QR 코드 보기' }));
+    await user.click(screen.getByRole('button', { name: `${window.location.host}/abc1234 QR 코드 보기` }));
     expect(onShowQr).toHaveBeenCalledWith(expect.objectContaining({ code: 'abc1234' }));
 
-    await user.click(screen.getByRole('button', { name: 's.example.com/abc1234 삭제' }));
+    await user.click(screen.getByRole('button', { name: `${window.location.host}/abc1234 삭제` }));
     expect(onDelete).toHaveBeenCalledWith(expect.objectContaining({ code: 'abc1234' }));
   });
 });

@@ -13,15 +13,15 @@ import {
 describe('format', () => {
   describe('shortUrl / shortLabel', () => {
     it('복사용 주소는 코드를 인코딩하고, 화면용 주소는 읽을 수 있게 둔다', () => {
-      expect(shortUrl('https://s.example.com/', '팀핸드북')).toBe(
+      expect(shortUrl('팀핸드북', 'https://s.example.com')).toBe(
         'https://s.example.com/%ED%8C%80%ED%95%B8%EB%93%9C%EB%B6%81',
       );
-      expect(shortLabel('https://s.example.com/', '팀핸드북')).toBe('s.example.com/팀핸드북');
+      expect(shortLabel('팀핸드북', 'https://s.example.com')).toBe('s.example.com/팀핸드북');
     });
 
-    it('설정된 주소가 없으면 현재 origin 을 쓴다', () => {
-      expect(shortUrl(null, 'abc', 'http://localhost:3000')).toBe('http://localhost:3000/abc');
-      expect(shortLabel(null, 'abc', 'http://localhost:3000')).toBe('localhost:3000/abc');
+    it('origin 을 주지 않으면 현재 접속 주소를 쓴다', () => {
+      expect(shortUrl('abc')).toBe(`${window.location.origin}/abc`);
+      expect(shortLabel('abc')).toBe(`${window.location.host}/abc`);
     });
   });
 

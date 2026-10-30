@@ -12,7 +12,6 @@ services:
     ports:
       - '${APP_PORT:-6824}:3000'
     environment:
-      TARGET_URL: ${TARGET_URL:-http://localhost:6824/}
       SERVICE_NAME: ${SERVICE_NAME:-MrShort}
       # 최초 실행(사용자가 한 명도 없을 때)에만 쓰이는 관리자 계정입니다. (예전 이름 ID / PW 도 인식합니다)
       ADMIN_ID: ${ADMIN_ID:-}

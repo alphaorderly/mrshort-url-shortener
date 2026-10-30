@@ -17,8 +17,8 @@ function hostOf(value: string): string | null {
  */
 export function originGuard(config: AppConfig): RequestHandler {
   const trusted = new Set<string>();
-  for (const origin of [config.baseUrl, ...config.allowedOrigins]) {
-    const host = origin ? hostOf(origin) : null;
+  for (const origin of config.allowedOrigins) {
+    const host = hostOf(origin);
     if (host) trusted.add(host);
   }
 

@@ -25,10 +25,7 @@ export class MetaController {
   @Public()
   @Get('config')
   getConfig() {
-    return {
-      serviceName: this.config.serviceName,
-      baseUrl: this.config.baseUrl,
-    };
+    return { serviceName: this.config.serviceName };
   }
 
   @Public()

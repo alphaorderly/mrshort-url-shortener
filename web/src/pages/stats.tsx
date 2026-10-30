@@ -7,7 +7,7 @@ import { DeleteDialog } from '@/components/delete-dialog';
 import { QrDialog } from '@/components/qr-dialog';
 import { ErrorState } from '@/components/states';
 import { Button } from '@/components/ui/button';
-import { useConfig, useLinkStats } from '@/hooks/queries';
+import { useLinkStats } from '@/hooks/queries';
 import { usePageTitle } from '@/hooks/use-page-title';
 import { ApiError, type LinkView } from '@/lib/api';
 import {
@@ -34,8 +34,6 @@ function BackLink() {
 export function StatsPage() {
   const { code = '' } = useParams();
   const navigate = useNavigate();
-  const { data: config } = useConfig();
-  const baseUrl = config?.baseUrl ?? null;
   const stats = useLinkStats(code);
 
   const [qrLink, setQrLink] = useState<LinkView | null>(null);
@@ -74,7 +72,7 @@ export function StatsPage() {
   }
 
   const { link, total, last7, last30, daily, recent } = stats.data;
-  const label = shortLabel(baseUrl, link.code);
+  const label = shortLabel(link.code);
   const original = safeHttpUrl(link.originalUrl);
 
   return (
@@ -86,7 +84,7 @@ export function StatsPage() {
           {label}
         </h1>
         <div className="flex items-center gap-1">
-          <CopyButton text={shortUrl(baseUrl, link.code)} variant="secondary" />
+          <CopyButton text={shortUrl(link.code)} variant="secondary" />
           <Button
             variant="ghost"
             size="icon"
@@ -178,10 +176,9 @@ export function StatsPage() {
         )}
       </section>
 
-      <QrDialog link={qrLink} baseUrl={baseUrl} onClose={() => setQrLink(null)} />
+      <QrDialog link={qrLink} onClose={() => setQrLink(null)} />
       <DeleteDialog
         link={deleting}
-        baseUrl={baseUrl}
         onClose={() => setDeleting(null)}
         onDeleted={() => navigate('/app', { replace: true })}
       />

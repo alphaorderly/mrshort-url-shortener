@@ -26,7 +26,6 @@ export function useE2eEnv(): void {
   process.env.ADMIN_ID = ADMIN.username;
   process.env.ADMIN_PASSWORD = ADMIN.password;
   process.env.WEB_DIST = join(__dirname, 'fixtures', 'web');
-  process.env.TARGET_URL = 'http://short.test/';
 
   if (!process.env.DB_DATABASE.includes('e2e')) {
     throw new Error(

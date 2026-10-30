@@ -58,7 +58,6 @@
 
 | 이름              | 기본값                    | 언제 바꾸나                                                              |
 | ----------------- | ------------------------- | ------------------------------------------------------------------------ |
-| `TARGET_URL`      | `http://localhost:6824/`  | 실제 접속 주소로. 짧은 주소 앞에 붙습니다 (예: `https://s.example.com/`) |
 | `APP_PORT`        | `6824`                    | 호스트에서 열 포트를 바꾸고 싶을 때 (컨테이너 내부 포트는 3000 고정)     |
 | `SERVICE_NAME`    | `MrShort`                 | 화면 왼쪽 위에 보일 이름을 바꾸고 싶을 때                                |
 | `TRUST_PROXY`     | `false`                   | nginx, Traefik 같은 리버스 프록시 뒤에서 운영하면 `1` 또는 `true`        |
@@ -156,7 +155,6 @@ cd web && yarn install && yarn dev
 | `REDIS_PASSWORD`   | `devpass`   |                                               |
 | `ADMIN_ID`         | 원하는 값   | 첫 로그인용 계정                              |
 | `ADMIN_PASSWORD`   | 원하는 값   |                                               |
-| `TARGET_URL`       | `http://localhost:3000/` | 짧은 주소 앞에 붙는 주소         |
 
 컨테이너 없이 서버를 직접 실행할 때만 쓰는 값도 있습니다: `PORT`(기본 `3000`), `REDIS_DB`(기본 `0`), `WEB_DIST`(기본 `./web/dist`, 빌드된 프론트엔드 위치).
 

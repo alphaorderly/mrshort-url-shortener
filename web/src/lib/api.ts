@@ -1,7 +1,5 @@
 export interface AppConfig {
   serviceName: string;
-  /** 짧은 주소가 노출되는 주소. 항상 `/` 로 끝난다. 설정하지 않았으면 null. */
-  baseUrl: string | null;
 }
 
 export interface SessionUser {

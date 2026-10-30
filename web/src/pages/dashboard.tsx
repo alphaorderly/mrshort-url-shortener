@@ -7,15 +7,13 @@ import { QrDialog } from '@/components/qr-dialog';
 import { ErrorState, LinkListSkeleton } from '@/components/states';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useConfig, useLinks } from '@/hooks/queries';
+import { useLinks } from '@/hooks/queries';
 import { usePageTitle } from '@/hooks/use-page-title';
 import type { LinkView } from '@/lib/api';
 import { displayUrl, shortLabel, shortUrl } from '@/lib/format';
 
 export function DashboardPage() {
   usePageTitle('내 링크');
-  const { data: config } = useConfig();
-  const baseUrl = config?.baseUrl ?? null;
 
   const [fresh, setFresh] = useState<LinkView | null>(null);
   const [qrLink, setQrLink] = useState<LinkView | null>(null);
@@ -33,7 +31,7 @@ export function DashboardPage() {
             <p className="mt-2 break-all font-mono text-2xl font-medium sm:text-3xl">
               {/* key 가 바뀌면 형광펜이 처음부터 다시 그어진다. */}
               <span key={fresh.id} className="marker marker-sweep">
-                {shortLabel(baseUrl, fresh.code)}
+                {shortLabel(fresh.code)}
               </span>
             </p>
             <p className="mt-2 truncate text-sm text-muted" title={fresh.originalUrl}>
@@ -41,7 +39,7 @@ export function DashboardPage() {
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
               <CopyButton
-                text={shortUrl(baseUrl, fresh.code)}
+                text={shortUrl(fresh.code)}
                 label="주소 복사"
                 variant="primary"
                 size="md"
@@ -54,12 +52,11 @@ export function DashboardPage() {
         )}
       </div>
 
-      <LinkList baseUrl={baseUrl} onShowQr={setQrLink} onDelete={setDeleting} />
+      <LinkList onShowQr={setQrLink} onDelete={setDeleting} />
 
-      <QrDialog link={qrLink} baseUrl={baseUrl} onClose={() => setQrLink(null)} />
+      <QrDialog link={qrLink} onClose={() => setQrLink(null)} />
       <DeleteDialog
         link={deleting}
-        baseUrl={baseUrl}
         onClose={() => setDeleting(null)}
         onDeleted={() =>
           setFresh((current) => (current?.id === deleting?.id ? null : current))
@@ -70,11 +67,9 @@ export function DashboardPage() {
 }
 
 function LinkList({
-  baseUrl,
   onShowQr,
   onDelete,
 }: {
-  baseUrl: string | null;
   onShowQr: (link: LinkView) => void;
   onDelete: (link: LinkView) => void;
 }) {
@@ -143,7 +138,6 @@ function LinkList({
             <LinkRow
               key={link.id}
               link={link}
-              baseUrl={baseUrl}
               onShowQr={onShowQr}
               onDelete={onDelete}
             />
