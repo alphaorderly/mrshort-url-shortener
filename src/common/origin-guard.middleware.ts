@@ -34,11 +34,7 @@ export function originGuard(config: AppConfig): RequestHandler {
     const origin = req.get('origin');
     if (origin) {
       const originHost = hostOf(origin);
-      const forwarded =
-        config.trustProxy !== false
-          ? req.get('x-forwarded-host')?.split(',')[0]?.trim()
-          : undefined;
-      const requestHost = forwarded || req.get('host');
+      const requestHost = req.get('host');
       if (
         !originHost ||
         (originHost !== requestHost && !trusted.has(originHost))

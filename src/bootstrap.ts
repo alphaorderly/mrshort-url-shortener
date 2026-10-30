@@ -12,7 +12,6 @@ export function configureApp(
   app: NestExpressApplication,
   config: AppConfig,
 ): void {
-  app.set('trust proxy', config.trustProxy);
   app.disable('x-powered-by');
 
   app.use(

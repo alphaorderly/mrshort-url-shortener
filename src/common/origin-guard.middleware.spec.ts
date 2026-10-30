@@ -9,7 +9,6 @@ function run(
 ) {
   const guard = originGuard({
     allowedOrigins: [],
-    trustProxy: false,
     ...config,
   } as AppConfig);
   const lower = Object.fromEntries(
@@ -68,18 +67,6 @@ describe('originGuard', () => {
 
   it('Origin 과 Sec-Fetch-Site 가 모두 없는 요청(curl 등)은 통과시킨다', () => {
     expect(run({}, 'POST', { Host: 'a.com' }).next).toHaveBeenCalled();
-  });
-
-  it('프록시 뒤에서는 X-Forwarded-Host 와 비교한다', () => {
-    const headers = {
-      Origin: 'https://s.example.com',
-      Host: 'app:3000',
-      'X-Forwarded-Host': 's.example.com',
-    };
-    expect(run({ trustProxy: true }, 'POST', headers).next).toHaveBeenCalled();
-    expect(
-      run({ trustProxy: false }, 'POST', headers).status,
-    ).toHaveBeenCalledWith(403);
   });
 
   it('ALLOWED_ORIGINS 의 호스트는 신뢰한다', () => {

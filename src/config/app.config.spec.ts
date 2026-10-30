@@ -20,8 +20,6 @@ describe('loadConfig', () => {
     expect(config).toMatchObject({
       port: 3000,
       serviceName: 'MrShort',
-      trustProxy: false,
-      cookieSecure: 'auto',
       sessionTtlSeconds: 30 * 24 * 60 * 60,
       admin: null,
       db: { host: 'db', port: 5432 },
@@ -54,16 +52,6 @@ describe('loadConfig', () => {
         PW: 'b',
       }).admin,
     ).toEqual({ username: 'a', password: 'b' });
-  });
-
-  it.each([
-    ['true', true],
-    ['false', false],
-    ['1', 1],
-    ['loopback, 10.0.0.0/8', 'loopback, 10.0.0.0/8'],
-    ['', false],
-  ])('TRUST_PROXY=%j', (raw, expected) => {
-    expect(loadConfig({ ...base, TRUST_PROXY: raw }).trustProxy).toBe(expected);
   });
 
   it('숫자 값이 잘못되면 거절한다', () => {

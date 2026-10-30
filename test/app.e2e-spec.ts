@@ -7,6 +7,7 @@ import {
   pgClient,
   resetDatabase,
   resetRedis,
+  secureAgent,
   useE2eEnv,
   waitFor,
 } from './helpers';
@@ -19,7 +20,7 @@ describe('MrShort API (e2e)', () => {
   let admin: TestAgent;
 
   const login = async (username: string, password: string) => {
-    const agent = request.agent(http);
+    const agent = secureAgent(http);
     const res = await agent
       .post('/api/auth/login')
       .send({ username, password });
@@ -257,7 +258,7 @@ describe('MrShort API (e2e)', () => {
 
     it('다른 사용자의 링크는 보이지 않고 지울 수도 없다', async () => {
       const invite = await admin.post('/api/invites').expect(201);
-      const other = request.agent(http);
+      const other = secureAgent(http);
       await other
         .post('/api/register')
         .send({
@@ -303,7 +304,7 @@ describe('MrShort API (e2e)', () => {
       expect(invite.body.token).toMatch(/^[A-Za-z0-9_-]{32}$/);
       await request(http).get(`/api/invites/${invite.body.token}`).expect(204);
 
-      const agent = request.agent(http);
+      const agent = secureAgent(http);
       const res = await agent
         .post('/api/register')
         .send({

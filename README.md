@@ -60,15 +60,10 @@
 | ----------------- | ------------------------- | ------------------------------------------------------------------------ |
 | `APP_PORT`        | `6824`                    | 호스트에서 열 포트를 바꾸고 싶을 때 (컨테이너 내부 포트는 3000 고정)     |
 | `SERVICE_NAME`    | `MrShort`                 | 화면 왼쪽 위에 보일 이름을 바꾸고 싶을 때                                |
-| `TRUST_PROXY`     | `false`                   | nginx, Traefik 같은 리버스 프록시 뒤에서 운영하면 `1` 또는 `true`        |
-| `COOKIE_SECURE`   | `auto`                    | `auto` 는 https 로 접속했을 때만 쿠키에 `Secure` 를 붙입니다. 고정하려면 `true` / `false` |
 | `SESSION_TTL_DAYS`| `30`                      | 로그인을 유지할 일수                                                     |
 | `ALLOWED_ORIGINS` | (비어 있음)               | 같은 사이트가 아닌 출처에서 오는 쓰기 요청을 허용할 때만 (쉼표로 구분)   |
 | `POSTGRES_USER`   | `mrshort`                 | PostgreSQL 사용자 이름                                                   |
 | `POSTGRES_DB`     | `urlshortener`            | PostgreSQL DB 이름                                                       |
-
-> `TRUST_PROXY` 를 설정하지 않으면 리버스 프록시 뒤에서는 모든 접속자가 프록시 IP 로 보여 로그인 시도 제한이 의도대로 동작하지 않고,
-> https 로 접속해도 쿠키에 `Secure` 가 붙지 않습니다.
 
 ### 4. 이전 버전에서 업데이트할 때만 채울 값
 

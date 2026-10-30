@@ -20,9 +20,6 @@ services:
       PW: ${PW:-}
       # 예전(SHA-256) 비밀번호 해시를 가진 기존 계정/링크가 있을 때만 필요합니다. 새 설치에서는 비워도 됩니다.
       HASH_SALT: ${HASH_SALT:-}
-      # 리버스 프록시(nginx, Traefik 등) 뒤에서 쓸 때 설정합니다. 예: 1
-      TRUST_PROXY: ${TRUST_PROXY:-false}
-      COOKIE_SECURE: ${COOKIE_SECURE:-auto}
       SESSION_TTL_DAYS: ${SESSION_TTL_DAYS:-30}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-}
       DB_HOST: postgres

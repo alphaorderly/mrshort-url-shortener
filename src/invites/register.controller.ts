@@ -1,6 +1,6 @@
-import { Body, Controller, Inject, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Inject, Post, Res } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { setSessionCookie } from '../auth/session-cookie';
 import { SessionService } from '../auth/session.service';
 import { Public } from '../common/public.decorator';
@@ -22,12 +22,11 @@ export class RegisterController {
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
   async register(
     @Body() dto: RegisterDto,
-    @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ): Promise<SessionUser> {
     const user = await this.invites.register(dto);
     const sid = await this.sessions.create(user);
-    setSessionCookie(req, res, sid, this.config);
+    setSessionCookie(res, sid, this.config);
     return user;
   }
 }

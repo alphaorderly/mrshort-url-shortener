@@ -19,9 +19,6 @@ export interface AppConfig {
   nodeEnv: string;
   port: number;
   serviceName: string;
-  /** express 의 `trust proxy` 값. */
-  trustProxy: boolean | number | string;
-  cookieSecure: 'auto' | boolean;
   sessionTtlSeconds: number;
   /** 예전 SHA-256 해시를 검증하기 위한 솔트. 새 설치에서는 비어 있어도 된다. */
   legacyHashSalt: string;
@@ -30,14 +27,6 @@ export interface AppConfig {
   webDist: string;
   db: DbConfig;
   redis: RedisConfig;
-}
-
-function parseTrustProxy(raw: string | undefined): AppConfig['trustProxy'] {
-  const value = raw?.trim();
-  if (!value || value === 'false') return false;
-  if (value === 'true') return true;
-  if (/^\d+$/.test(value)) return Number.parseInt(value, 10);
-  return value;
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
@@ -70,13 +59,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     nodeEnv: env.NODE_ENV ?? 'development',
     port: integer('PORT', 3000),
     serviceName: env.SERVICE_NAME?.trim() || 'MrShort',
-    trustProxy: parseTrustProxy(env.TRUST_PROXY),
-    cookieSecure:
-      env.COOKIE_SECURE === 'true'
-        ? true
-        : env.COOKIE_SECURE === 'false'
-          ? false
-          : 'auto',
     sessionTtlSeconds: integer('SESSION_TTL_DAYS', 30) * 24 * 60 * 60,
     legacyHashSalt: env.HASH_SALT ?? '',
     admin:
