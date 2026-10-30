@@ -58,6 +58,7 @@ export class InvitesService {
       throw new ConflictException('이미 존재하는 아이디입니다.');
     }
 
+    const remainingMs = await this.redis.pttl(inviteKey(dto.token));
     if (!(await this.consume(dto.token)))
       throw new GoneException(INVALID_INVITE);
 
@@ -65,8 +66,11 @@ export class InvitesService {
       const user = await this.users.create(dto.username, dto.password);
       return { id: user.id, username: user.username };
     } catch (error) {
-      // 동시에 같은 아이디로 가입한 경우: 초대 링크를 되돌려 다시 시도할 수 있게 한다.
-      await this.redis.set(inviteKey(dto.token), '0', 'EX', INVITE_TTL_SECONDS);
+      // 가입에 실패했으면 초대 링크를 되돌려 다시 시도할 수 있게 한다.
+      // 남은 유효 시간은 그대로 두어, 실패할 때마다 만료가 늘어나지 않게 한다.
+      if (remainingMs > 0) {
+        await this.redis.set(inviteKey(dto.token), '0', 'PX', remainingMs);
+      }
       if (isUniqueViolation(error)) {
         throw new ConflictException('이미 존재하는 아이디입니다.');
       }

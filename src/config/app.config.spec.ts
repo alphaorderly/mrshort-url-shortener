@@ -27,31 +27,14 @@ describe('loadConfig', () => {
     });
   });
 
-  it('예전 ID/PW 환경변수도 관리자 계정으로 읽는다', () => {
-    expect(loadConfig({ ...base, ID: 'a', PW: 'b' }).admin).toEqual({
-      username: 'a',
-      password: 'b',
-    });
+  it('ADMIN_ID 와 ADMIN_PASSWORD 가 둘 다 있을 때만 관리자 계정을 만든다', () => {
     expect(
-      loadConfig({
-        ...base,
-        ID: 'a',
-        PW: 'b',
-        ADMIN_ID: 'x',
-        ADMIN_PASSWORD: 'y',
-      }).admin,
+      loadConfig({ ...base, ADMIN_ID: 'x', ADMIN_PASSWORD: 'y' }).admin,
     ).toEqual({ username: 'x', password: 'y' });
-    expect(loadConfig({ ...base, ID: 'a' }).admin).toBeNull();
-    // 새 이름이 빈 문자열로 넘어와도 예전 이름을 쓴다.
+    expect(loadConfig({ ...base, ADMIN_ID: 'x' }).admin).toBeNull();
     expect(
-      loadConfig({
-        ...base,
-        ADMIN_ID: '',
-        ADMIN_PASSWORD: '',
-        ID: 'a',
-        PW: 'b',
-      }).admin,
-    ).toEqual({ username: 'a', password: 'b' });
+      loadConfig({ ...base, ADMIN_ID: '', ADMIN_PASSWORD: '' }).admin,
+    ).toBeNull();
   });
 
   it('숫자 값이 잘못되면 거절한다', () => {

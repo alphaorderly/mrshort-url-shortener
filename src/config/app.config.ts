@@ -20,8 +20,6 @@ export interface AppConfig {
   port: number;
   serviceName: string;
   sessionTtlSeconds: number;
-  /** 예전 SHA-256 해시를 검증하기 위한 솔트. 새 설치에서는 비어 있어도 된다. */
-  legacyHashSalt: string;
   admin: { username: string; password: string } | null;
   webDist: string;
   db: DbConfig;
@@ -50,16 +48,14 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     return parsed;
   };
 
-  // 예전 ID/PW 이름도 받는다. compose 가 빈 문자열로 넘겨도 비어 있지 않은 쪽을 쓴다.
-  const adminId = env.ADMIN_ID?.trim() || env.ID?.trim();
-  const adminPassword = env.ADMIN_PASSWORD || env.PW;
+  const adminId = env.ADMIN_ID?.trim();
+  const adminPassword = env.ADMIN_PASSWORD;
 
   const config: AppConfig = {
     nodeEnv: env.NODE_ENV ?? 'development',
     port: integer('PORT', 3000),
     serviceName: env.SERVICE_NAME?.trim() || 'MrShort',
     sessionTtlSeconds: integer('SESSION_TTL_DAYS', 30) * 24 * 60 * 60,
-    legacyHashSalt: env.HASH_SALT ?? '',
     admin:
       adminId && adminPassword
         ? { username: adminId, password: adminPassword }

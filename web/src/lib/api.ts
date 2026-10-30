@@ -14,7 +14,7 @@ export interface LinkView {
   hasPassword: boolean;
   expiresAt: string | null;
   expired: boolean;
-  createdAt: string | null;
+  createdAt: string;
   clickCount: number;
 }
 

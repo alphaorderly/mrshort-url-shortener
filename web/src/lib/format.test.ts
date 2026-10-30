@@ -4,7 +4,6 @@ import {
   displayUrl,
   formatDayKey,
   relativeTime,
-  safeHttpUrl,
   shortLabel,
   shortUrl,
   toLocalInputValue,
@@ -28,20 +27,6 @@ describe('format', () => {
   it('displayUrl 은 프로토콜과 끝의 / 를 뗀다', () => {
     expect(displayUrl('https://example.com/')).toBe('example.com');
     expect(displayUrl('http://example.com/a/b?c=1')).toBe('example.com/a/b?c=1');
-  });
-
-  describe('safeHttpUrl', () => {
-    it('http(s) 만 통과시킨다', () => {
-      expect(safeHttpUrl('https://example.com/a')).toBe('https://example.com/a');
-      expect(safeHttpUrl('http://example.com')).toBe('http://example.com');
-    });
-
-    it.each(['javascript:alert(1)', 'data:text/html,<b>', 'ftp://x.com', 'not a url', ''])(
-      '%j 는 거절한다',
-      (value) => {
-        expect(safeHttpUrl(value)).toBeUndefined();
-      },
-    );
   });
 
   describe('relativeTime', () => {

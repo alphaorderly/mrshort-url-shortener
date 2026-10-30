@@ -10,10 +10,7 @@ import {
 import { User } from '../users/user.entity';
 import { Click } from './click.entity';
 
-/**
- * 기존 DB 와 호환되도록 테이블/컬럼 이름은 예전 이름(shorten, originalURL, ...)을 그대로 쓰고
- * 코드에서만 읽기 쉬운 이름을 사용한다.
- */
+/** 테이블/컬럼 이름은 마이그레이션이 만든 이름(shorten, originalURL, ...)이고, 코드에서는 읽기 쉬운 이름을 쓴다. */
 @Entity('shorten')
 @Index('IDX_shorten_user', ['userId'])
 export class Link {
@@ -39,15 +36,13 @@ export class Link {
   @Column({ name: 'password', type: 'varchar', nullable: true })
   passwordHash!: string | null;
 
-  /** 예전에 만든 링크는 생성 시각을 알 수 없어 null 이다. */
   @Column({
     name: 'createdAt',
     type: 'timestamp',
-    nullable: true,
     default: () => 'now()',
     update: false,
   })
-  createdAt!: Date | null;
+  createdAt!: Date;
 
   @OneToMany(() => Click, (click) => click.link)
   clicks?: Click[];
