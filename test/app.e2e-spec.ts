@@ -109,6 +109,23 @@ describe('MrShort API (e2e)', () => {
         .expect(429);
     });
 
+    it('프록시 뒤에서는 접속자 IP 별로 요청 제한을 센다', async () => {
+      process.env.THROTTLE_DISABLED = 'false';
+      try {
+        const attempt = (ip: string) =>
+          request(http)
+            .post('/api/links/nope/unlock')
+            .set('X-Forwarded-For', ip)
+            .send({ password: 'x' });
+
+        for (let i = 0; i < 10; i += 1) await attempt('203.0.113.1');
+        await attempt('203.0.113.1').expect(429);
+        expect((await attempt('203.0.113.2')).status).not.toBe(429);
+      } finally {
+        process.env.THROTTLE_DISABLED = 'true';
+      }
+    });
+
     it('다른 출처에서 온 상태 변경 요청은 거절한다 (CSRF)', async () => {
       await admin
         .post('/api/links')

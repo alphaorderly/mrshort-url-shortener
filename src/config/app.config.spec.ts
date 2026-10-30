@@ -20,6 +20,7 @@ describe('loadConfig', () => {
     expect(config).toMatchObject({
       port: 3000,
       serviceName: 'MrShort',
+      trustProxy: 0,
       sessionTtlSeconds: 30 * 24 * 60 * 60,
       admin: null,
       db: { host: 'db', port: 5432 },
@@ -40,5 +41,12 @@ describe('loadConfig', () => {
   it('숫자 값이 잘못되면 거절한다', () => {
     expect(() => loadConfig({ ...base, PORT: 'abc' })).toThrow(/PORT/);
     expect(() => loadConfig({ ...base, DB_PORT: '-1' })).toThrow(/DB_PORT/);
+    expect(() => loadConfig({ ...base, TRUST_PROXY: 'yes' })).toThrow(
+      /TRUST_PROXY/,
+    );
+  });
+
+  it('TRUST_PROXY 로 신뢰할 프록시 단계 수를 정한다', () => {
+    expect(loadConfig({ ...base, TRUST_PROXY: '1' }).trustProxy).toBe(1);
   });
 });

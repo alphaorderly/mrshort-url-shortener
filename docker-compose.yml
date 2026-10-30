@@ -12,10 +12,14 @@ services:
     # 레지스트리에서 받으려다 실패하지 않도록, 항상 빌드하고 pull 은 건너뛰게 합니다.
     pull_policy: build
     restart: unless-stopped
+    # Cloudflare Tunnel 처럼 같은 서버에서 접속하는 프록시만 쓴다면 APP_BIND=127.0.0.1 로 두어
+    # 포트로 직접 들어오는 접속(프록시 우회)을 막습니다.
     ports:
-      - '${APP_PORT:-6824}:3000'
+      - '${APP_BIND:-0.0.0.0}:${APP_PORT:-6824}:3000'
     environment:
       SERVICE_NAME: ${SERVICE_NAME:-MrShort}
+      # 앞단 프록시(Cloudflare Tunnel 등) 단계 수. 접속자 IP 별 요청 제한에 쓰입니다. 프록시 없이 직접 노출하면 0.
+      TRUST_PROXY: ${TRUST_PROXY:-1}
       # 최초 실행(사용자가 한 명도 없을 때)에만 쓰이는 관리자 계정입니다.
       ADMIN_ID: ${ADMIN_ID:-}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}

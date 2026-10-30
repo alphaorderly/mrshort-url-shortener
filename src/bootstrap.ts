@@ -13,6 +13,8 @@ export function configureApp(
   config: AppConfig,
 ): void {
   app.disable('x-powered-by');
+  // 프록시 뒤에서는 소켓 주소가 프록시 것이라, 요청 제한이 모든 접속자를 한 명으로 센다.
+  app.set('trust proxy', config.trustProxy);
 
   app.use(
     helmet({

@@ -23,6 +23,7 @@ export function useE2eEnv(): void {
   process.env.REDIS_PASSWORD ??= 'devpass';
   process.env.REDIS_DB ??= '15';
   process.env.THROTTLE_DISABLED = 'true';
+  process.env.TRUST_PROXY = '1';
   process.env.ADMIN_ID = ADMIN.username;
   process.env.ADMIN_PASSWORD = ADMIN.password;
   process.env.WEB_DIST = join(__dirname, 'fixtures', 'web');

@@ -19,6 +19,8 @@ export interface AppConfig {
   nodeEnv: string;
   port: number;
   serviceName: string;
+  /** 앞단 리버스 프록시(Cloudflare Tunnel 등)가 몇 단계인지. 0 이면 X-Forwarded-For 를 믿지 않는다. */
+  trustProxy: number;
   sessionTtlSeconds: number;
   admin: { username: string; password: string } | null;
   webDist: string;
@@ -55,6 +57,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     nodeEnv: env.NODE_ENV ?? 'development',
     port: integer('PORT', 3000),
     serviceName: env.SERVICE_NAME?.trim() || 'MrShort',
+    trustProxy: integer('TRUST_PROXY', 0),
     sessionTtlSeconds: integer('SESSION_TTL_DAYS', 30) * 24 * 60 * 60,
     admin:
       adminId && adminPassword
