@@ -7,15 +7,7 @@ const ALPHABET =
 export const CODE_PATTERN = /^[\p{L}\p{N}_-]{1,100}$/u;
 
 /** 서비스 경로와 겹치는 주소는 짧은 주소로 쓸 수 없다. */
-const RESERVED_CODES = new Set([
-  'api',
-  'app',
-  'assets',
-  'auth',
-  'register',
-  'stat',
-  'health',
-]);
+const RESERVED_CODES = new Set(['api', 'app', 'assets']);
 
 export function generateCode(length = 7): string {
   let code = '';
@@ -31,13 +23,4 @@ export function isReservedCode(code: string): boolean {
 
 export function normalizeCode(code: string): string {
   return code.normalize('NFC');
-}
-
-export function isHttpUrl(value: string): boolean {
-  try {
-    const { protocol } = new URL(value);
-    return protocol === 'http:' || protocol === 'https:';
-  } catch {
-    return false;
-  }
 }

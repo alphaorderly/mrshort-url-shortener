@@ -256,6 +256,33 @@ describe('MrShort API (e2e)', () => {
       ).toBe(true);
     });
 
+    it('없는 주소는 잠깐 기억하되, 같은 주소로 링크를 만들면 바로 열린다', async () => {
+      await request(http).get('/made-later').expect(404);
+      await request(http).get('/direct-insert').expect(404);
+
+      // 서비스를 거치지 않고 DB 에 직접 넣으면 기억된 기록 때문에 계속 404 이다.
+      const client = pgClient();
+      await client.connect();
+      await client.query(
+        `INSERT INTO shorten ("originalURL", "shortenedURL") VALUES ('https://example.com/direct', 'direct-insert')`,
+      );
+      await client.end();
+      await request(http).get('/direct-insert').expect(404);
+      await request(http).get('/direct-insert').expect(404);
+      await resetRedisKeys('miss:*');
+      await request(http).get('/direct-insert').expect(302);
+
+      // 서비스로 만들 때는 기록을 지우므로 기다릴 필요가 없다.
+      await admin
+        .post('/api/links')
+        .send({ url: 'https://example.com/later', code: 'made-later' })
+        .expect(201);
+      await request(http)
+        .get('/made-later')
+        .expect(302)
+        .expect('Location', 'https://example.com/later');
+    });
+
     it('다른 사용자의 링크는 보이지 않고 지울 수도 없다', async () => {
       const invite = await admin.post('/api/invites').expect(201);
       const other = secureAgent(http);
@@ -394,24 +421,14 @@ describe('MrShort API (e2e)', () => {
       await request(http).get('/assets/app.js').expect(200);
     });
 
+    it('대표 주소(/)로 들어오면 /app 으로 보낸다', async () => {
+      await request(http).get('/').expect(302).expect('Location', '/app');
+      await request(http).head('/').expect(302).expect('Location', '/app');
+    });
+
     it('/api 의 없는 경로는 JSON 404 이다', async () => {
       const res = await request(http).get('/api/nothing').expect(404);
       expect(res.headers['content-type']).toMatch(/json/);
-    });
-
-    it('예전 서버 렌더링 주소는 새 화면으로 보낸다', async () => {
-      await request(http)
-        .get('/stat/abc')
-        .expect(302)
-        .expect('Location', '/app/stats/abc');
-      await request(http)
-        .get('/register/url/some-token')
-        .expect(302)
-        .expect('Location', '/app/register/some-token');
-      await request(http)
-        .get('/auth/change-password')
-        .expect(302)
-        .expect('Location', '/app/account');
     });
   });
 

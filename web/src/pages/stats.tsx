@@ -14,7 +14,6 @@ import {
   formatDate,
   formatDateTime,
   relativeTime,
-  safeHttpUrl,
   shortLabel,
   shortUrl,
 } from '@/lib/format';
@@ -73,7 +72,6 @@ export function StatsPage() {
 
   const { link, total, last7, last30, daily, recent } = stats.data;
   const label = shortLabel(link.code);
-  const original = safeHttpUrl(link.originalUrl);
 
   return (
     <>
@@ -106,18 +104,14 @@ export function StatsPage() {
       </div>
 
       <p className="mt-2 break-all text-muted">
-        {original ? (
-          <a
-            href={original}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline decoration-line-strong decoration-1 underline-offset-4 hover:text-ink hover:decoration-ink"
-          >
-            {link.originalUrl}
-          </a>
-        ) : (
-          link.originalUrl
-        )}
+        <a
+          href={link.originalUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline decoration-line-strong decoration-1 underline-offset-4 hover:text-ink hover:decoration-ink"
+        >
+          {link.originalUrl}
+        </a>
       </p>
 
       <p className="tabular mt-12 text-7xl font-semibold tracking-tight sm:text-8xl">
@@ -141,7 +135,7 @@ export function StatsPage() {
         </h2>
         <dl className="grid grid-cols-[6.5rem_minmax(0,1fr)] gap-y-3 border-t border-line pt-4 text-sm">
           <dt className="text-muted">만든 날짜</dt>
-          <dd>{link.createdAt ? formatDate(link.createdAt) : '기록 없음'}</dd>
+          <dd>{formatDate(link.createdAt)}</dd>
           <dt className="text-muted">만료</dt>
           <dd>
             {link.expiresAt

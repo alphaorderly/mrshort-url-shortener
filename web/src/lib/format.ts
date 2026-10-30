@@ -8,19 +8,6 @@ export function shortLabel(code: string, origin: string = window.location.origin
   return `${origin}/${code}`.replace(/^https?:\/\//, '');
 }
 
-/**
- * 링크의 href 로 써도 안전한 주소만 돌려준다.
- * 예전 데이터에 javascript: 같은 스킴이 들어 있어도 클릭 가능한 링크로 만들지 않기 위해서다.
- */
-export function safeHttpUrl(value: string): string | undefined {
-  try {
-    const { protocol } = new URL(value);
-    return protocol === 'http:' || protocol === 'https:' ? value : undefined;
-  } catch {
-    return undefined;
-  }
-}
-
 /** 프로토콜과 끝의 `/` 를 뗀 원본 주소 */
 export function displayUrl(url: string): string {
   return url.replace(/^https?:\/\//, '').replace(/\/$/, '');

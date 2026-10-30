@@ -41,11 +41,11 @@ export class AuthService {
     }
 
     const found = await this.users.findWithHashByUsername(username);
-    const check = found
+    const valid = found
       ? await this.passwords.verify(password, found.passwordHash)
-      : null;
+      : false;
 
-    if (!found || !check?.valid) {
+    if (!found || !valid) {
       if (!found) await this.passwords.verifyAgainstDummy(password);
       await this.redis.multi().incr(key).expire(key, LOCK_SECONDS).exec();
       throw new UnauthorizedException(
@@ -54,13 +54,6 @@ export class AuthService {
     }
 
     await this.redis.del(key);
-
-    if (check.needsRehash) {
-      await this.users.updatePasswordHash(
-        found.id,
-        await this.passwords.hash(password),
-      );
-    }
 
     const user: SessionUser = { id: found.id, username: found.username };
     const sid = await this.sessions.create(user);
@@ -74,11 +67,11 @@ export class AuthService {
     newPassword: string,
   ): Promise<void> {
     const found = await this.users.findWithHashById(userId);
-    const check = found
+    const valid = found
       ? await this.passwords.verify(currentPassword, found.passwordHash)
-      : null;
+      : false;
 
-    if (!found || !check?.valid) {
+    if (!found || !valid) {
       throw new BadRequestException('현재 비밀번호가 일치하지 않습니다.');
     }
 

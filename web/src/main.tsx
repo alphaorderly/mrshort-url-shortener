@@ -4,7 +4,7 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router';
 import { Toaster } from 'sonner';
 import { App } from './app';
-import { queryKeys } from './hooks/queries';
+import { clearUserData, queryKeys } from './hooks/queries';
 import './index.css';
 import { ApiError, setUnauthorizedHandler } from './lib/api';
 import { useTheme } from './lib/theme';
@@ -22,7 +22,10 @@ const queryClient = new QueryClient({
 });
 
 // 세션이 만료되면 어떤 요청이든 로그인 상태를 지워서 로그인 화면으로 보낸다.
-setUnauthorizedHandler(() => queryClient.setQueryData(queryKeys.me, null));
+setUnauthorizedHandler(() => {
+  queryClient.setQueryData(queryKeys.me, null);
+  clearUserData(queryClient);
+});
 
 function ThemedToaster() {
   const { theme } = useTheme();

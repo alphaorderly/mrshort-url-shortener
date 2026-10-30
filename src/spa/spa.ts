@@ -7,6 +7,7 @@ import { join } from 'path';
 /**
  * 빌드된 프론트엔드(web/dist)를 정적 파일로 서비스하고,
  * `/app` 하위 경로는 모두 index.html 로 응답한다(SPA 라우팅).
+ * 대표 주소(`/`)로 들어오면 `/app` 으로 보낸다.
  * 빌드 결과가 없으면 null 을 돌려주고 API 만 동작한다.
  */
 export function mountSpa(
@@ -36,6 +37,10 @@ export function mountSpa(
 
   app.use((req: Request, res: Response, next: NextFunction) => {
     const isPage = req.method === 'GET' || req.method === 'HEAD';
+    if (isPage && req.path === '/') {
+      res.redirect(302, '/app');
+      return;
+    }
     if (isPage && (req.path === '/app' || req.path.startsWith('/app/'))) {
       res.setHeader('Cache-Control', 'no-cache');
       res.sendFile(indexPath);

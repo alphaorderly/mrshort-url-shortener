@@ -1,7 +1,6 @@
 import {
   CODE_PATTERN,
   generateCode,
-  isHttpUrl,
   isReservedCode,
   normalizeCode,
 } from './code.util';
@@ -42,16 +41,7 @@ describe('code.util', () => {
   });
 
   it('서비스 경로와 겹치는 주소는 대소문자와 관계없이 예약어이다', () => {
-    for (const code of [
-      'api',
-      'API',
-      'App',
-      'assets',
-      'auth',
-      'register',
-      'stat',
-      'health',
-    ]) {
+    for (const code of ['api', 'API', 'App', 'assets']) {
       expect(isReservedCode(code)).toBe(true);
     }
     expect(isReservedCode('my-app')).toBe(false);
@@ -61,14 +51,5 @@ describe('code.util', () => {
     const decomposed = '한글'.normalize('NFD');
     expect(decomposed).not.toBe('한글');
     expect(normalizeCode(decomposed)).toBe('한글');
-  });
-
-  it('http(s) 주소만 허용한다', () => {
-    expect(isHttpUrl('https://example.com/a?b=1')).toBe(true);
-    expect(isHttpUrl('http://localhost:3000')).toBe(true);
-    expect(isHttpUrl('javascript:alert(1)')).toBe(false);
-    expect(isHttpUrl('data:text/html,<script>')).toBe(false);
-    expect(isHttpUrl('ftp://example.com')).toBe(false);
-    expect(isHttpUrl('not a url')).toBe(false);
   });
 });

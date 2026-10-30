@@ -11,7 +11,7 @@ const base: LinkView = {
   hasPassword: false,
   expiresAt: null,
   expired: false,
-  createdAt: null,
+  createdAt: '2026-10-01T00:00:00.000Z',
   clickCount: 1234,
 };
 

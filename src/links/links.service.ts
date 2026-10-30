@@ -17,7 +17,6 @@ import { Click } from './click.entity';
 import {
   CODE_PATTERN,
   generateCode,
-  isHttpUrl,
   isReservedCode,
   normalizeCode,
 } from './code.util';
@@ -30,7 +29,11 @@ const STATS_DAYS = 30;
 const RECENT_CLICKS = 20;
 const NOT_FOUND_MESSAGE = '링크를 찾을 수 없거나 만료되었습니다.';
 
+/** 없는 주소를 잠깐 기억해 두어, 같은 잘못된 주소가 반복돼도 DB 를 매번 조회하지 않는다. */
+const MISS_SECONDS = 60;
+
 const cacheKey = (code: string) => `link:${code}`;
+const missKey = (code: string) => `miss:${code}`;
 
 export type Resolution =
   { type: 'redirect'; url: string } | { type: 'password' };
@@ -42,7 +45,7 @@ export interface LinkView {
   hasPassword: boolean;
   expiresAt: string | null;
   expired: boolean;
-  createdAt: string | null;
+  createdAt: string;
   clickCount: number;
 }
 
@@ -111,11 +114,11 @@ export class LinksService {
 
     if (customCode) {
       try {
-        return this.toView(
-          await this.links.save(
-            this.links.create({ ...draft, code: customCode }),
-          ),
+        const saved = await this.links.save(
+          this.links.create({ ...draft, code: customCode }),
         );
+        await this.forgetMiss(saved.code);
+        return this.toView(saved);
       } catch (error) {
         if (isUniqueViolation(error)) {
           throw new ConflictException('이미 사용 중인 주소입니다.');
@@ -128,9 +131,11 @@ export class LinksService {
       const code = generateCode();
       if (isReservedCode(code)) continue;
       try {
-        return this.toView(
-          await this.links.save(this.links.create({ ...draft, code })),
+        const saved = await this.links.save(
+          this.links.create({ ...draft, code }),
         );
+        await this.forgetMiss(saved.code);
+        return this.toView(saved);
       } catch (error) {
         if (!isUniqueViolation(error)) throw error;
       }
@@ -214,8 +219,13 @@ export class LinksService {
       return { type: 'redirect', url: cached.url };
     }
 
+    if (await this.isKnownMiss(normalized)) {
+      throw new NotFoundException(NOT_FOUND_MESSAGE);
+    }
+
     const link = await this.links.findOne({ where: { code: normalized } });
-    if (!link || this.isExpired(link) || !isHttpUrl(link.originalUrl)) {
+    if (!link || this.isExpired(link)) {
+      await this.rememberMiss(normalized);
       throw new NotFoundException(NOT_FOUND_MESSAGE);
     }
     if (link.passwordHash) return { type: 'password' };
@@ -229,20 +239,15 @@ export class LinksService {
     const link = await this.links.findOne({
       where: { code: normalizeCode(code) },
     });
-    if (!link || this.isExpired(link) || !isHttpUrl(link.originalUrl)) {
+    if (!link || this.isExpired(link)) {
       throw new NotFoundException(NOT_FOUND_MESSAGE);
     }
 
-    if (link.passwordHash) {
-      const check = await this.passwords.verify(password, link.passwordHash);
-      if (!check.valid) {
-        throw new ForbiddenException('비밀번호가 올바르지 않습니다.');
-      }
-      if (check.needsRehash) {
-        await this.links.update(link.id, {
-          passwordHash: await this.passwords.hash(password),
-        });
-      }
+    if (
+      link.passwordHash &&
+      !(await this.passwords.verify(password, link.passwordHash))
+    ) {
+      throw new ForbiddenException('비밀번호가 올바르지 않습니다.');
     }
 
     this.recordClick(link.id);
@@ -261,7 +266,7 @@ export class LinksService {
       hasPassword: Boolean(link.passwordHash),
       expiresAt: link.expiresAt ? link.expiresAt.toISOString() : null,
       expired: this.isExpired(link),
-      createdAt: link.createdAt ? link.createdAt.toISOString() : null,
+      createdAt: link.createdAt.toISOString(),
       clickCount: link.clickCount ?? 0,
     };
   }
@@ -307,6 +312,32 @@ export class LinksService {
       );
     } catch (error) {
       this.logger.warn(`캐시 저장 실패: ${(error as Error).message}`);
+    }
+  }
+
+  private async isKnownMiss(code: string): Promise<boolean> {
+    try {
+      return (await this.redis.exists(missKey(code))) === 1;
+    } catch (error) {
+      this.logger.warn(`캐시 조회 실패: ${(error as Error).message}`);
+      return false;
+    }
+  }
+
+  private async rememberMiss(code: string): Promise<void> {
+    try {
+      await this.redis.set(missKey(code), '1', 'EX', MISS_SECONDS);
+    } catch (error) {
+      this.logger.warn(`캐시 저장 실패: ${(error as Error).message}`);
+    }
+  }
+
+  /** 방금 만든 주소가 "없는 주소" 기록 때문에 열리지 않는 일이 없도록 지운다. */
+  private async forgetMiss(code: string): Promise<void> {
+    try {
+      await this.redis.del(missKey(code));
+    } catch (error) {
+      this.logger.warn(`캐시 삭제 실패: ${(error as Error).message}`);
     }
   }
 

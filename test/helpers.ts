@@ -10,7 +10,6 @@ import { configureApp } from '../src/bootstrap';
 import { APP_CONFIG, AppConfig } from '../src/config/app.config';
 
 export const ADMIN = { username: 'admin', password: 'admin-password-1' };
-export const LEGACY_SALT = 'test-salt';
 
 /** e2e 는 전용 DB/Redis 만 지우고 다시 만든다. 이름에 e2e 가 없으면 중단한다. */
 export function useE2eEnv(): void {
@@ -24,7 +23,6 @@ export function useE2eEnv(): void {
   process.env.REDIS_PASSWORD ??= 'devpass';
   process.env.REDIS_DB ??= '15';
   process.env.THROTTLE_DISABLED = 'true';
-  process.env.HASH_SALT = LEGACY_SALT;
   process.env.ADMIN_ID = ADMIN.username;
   process.env.ADMIN_PASSWORD = ADMIN.password;
   process.env.WEB_DIST = join(__dirname, 'fixtures', 'web');
