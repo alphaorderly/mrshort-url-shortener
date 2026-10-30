@@ -63,6 +63,16 @@ describe('loadConfig', () => {
       }).admin,
     ).toEqual({ username: 'x', password: 'y' });
     expect(loadConfig({ ...base, ID: 'a' }).admin).toBeNull();
+    // 새 이름이 빈 문자열로 넘어와도 예전 이름을 쓴다.
+    expect(
+      loadConfig({
+        ...base,
+        ADMIN_ID: '',
+        ADMIN_PASSWORD: '',
+        ID: 'a',
+        PW: 'b',
+      }).admin,
+    ).toEqual({ username: 'a', password: 'b' });
   });
 
   it.each([

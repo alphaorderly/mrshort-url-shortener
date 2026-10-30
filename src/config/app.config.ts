@@ -79,8 +79,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     return parsed;
   };
 
-  const adminId = (env.ADMIN_ID ?? env.ID)?.trim();
-  const adminPassword = env.ADMIN_PASSWORD ?? env.PW;
+  // 예전 ID/PW 이름도 받는다. compose 가 빈 문자열로 넘겨도 비어 있지 않은 쪽을 쓴다.
+  const adminId = env.ADMIN_ID?.trim() || env.ID?.trim();
+  const adminPassword = env.ADMIN_PASSWORD || env.PW;
 
   const config: AppConfig = {
     nodeEnv: env.NODE_ENV ?? 'development',
