@@ -14,12 +14,7 @@ import { PasswordService } from '../auth/password.service';
 import { isUniqueViolation } from '../common/db-errors';
 import { REDIS } from '../redis/redis.module';
 import { Click } from './click.entity';
-import {
-  CODE_PATTERN,
-  generateCode,
-  isReservedCode,
-  normalizeCode,
-} from './code.util';
+import { CODE_PATTERN, generateCode, normalizeCode } from './code.util';
 import { CreateLinkDto } from './links.dto';
 import { Link } from './link.entity';
 
@@ -90,15 +85,10 @@ export class LinksService {
     }
 
     const customCode = dto.code ? normalizeCode(dto.code) : null;
-    if (customCode) {
-      if (!CODE_PATTERN.test(customCode)) {
-        throw new BadRequestException(
-          '주소는 글자, 숫자, _ - 만 사용해 100자 이하로 입력하세요.',
-        );
-      }
-      if (isReservedCode(customCode)) {
-        throw new BadRequestException('사용할 수 없는 주소입니다.');
-      }
+    if (customCode && !CODE_PATTERN.test(customCode)) {
+      throw new BadRequestException(
+        '주소는 글자, 숫자, _ - 만 사용해 100자 이하로 입력하세요.',
+      );
     }
 
     const passwordHash = dto.password
@@ -129,7 +119,6 @@ export class LinksService {
 
     for (let attempt = 0; attempt < MAX_CODE_ATTEMPTS; attempt += 1) {
       const code = generateCode();
-      if (isReservedCode(code)) continue;
       try {
         const saved = await this.links.save(
           this.links.create({ ...draft, code }),

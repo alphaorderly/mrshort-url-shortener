@@ -30,14 +30,14 @@ export function AppShell() {
       </a>
       <header className="border-b border-line">
         <div className="mx-auto flex w-full max-w-3xl flex-wrap items-center gap-x-6 gap-y-1 px-4 py-3 sm:px-6">
-          <Link to="/app">
+          <Link to="/~">
             <Wordmark name={config?.serviceName ?? 'MrShort'} />
           </Link>
           <nav aria-label="주 메뉴" className="flex gap-5">
-            <NavLink to="/app" end className={navClass}>
+            <NavLink to="/~" end className={navClass}>
               링크
             </NavLink>
-            <NavLink to="/app/account" className={navClass}>
+            <NavLink to="/~/account" className={navClass}>
               계정
             </NavLink>
           </nav>

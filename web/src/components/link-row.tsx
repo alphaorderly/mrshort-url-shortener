@@ -55,7 +55,7 @@ export function LinkRow({
         </span>
         <CopyButton text={shortUrl(link.code)} />
         <Link
-          to={`/app/stats/${encodeURIComponent(link.code)}`}
+          to={`/~/stats/${encodeURIComponent(link.code)}`}
           className={buttonVariants({ variant: 'ghost', size: 'sm' })}
         >
           <BarChart3 className="size-4" aria-hidden />

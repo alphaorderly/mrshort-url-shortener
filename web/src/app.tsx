@@ -11,10 +11,10 @@ import { UnlockPage } from '@/pages/unlock';
 export function App() {
   return (
     <Routes>
-      <Route path="/app/login" element={<LoginPage />} />
-      <Route path="/app/register/:token" element={<RegisterPage />} />
-      <Route path="/app/unlock/:code" element={<UnlockPage />} />
-      <Route path="/app" element={<RequireAuth />}>
+      <Route path="/~/login" element={<LoginPage />} />
+      <Route path="/~/register/:token" element={<RegisterPage />} />
+      <Route path="/~/unlock/:code" element={<UnlockPage />} />
+      <Route path="/~" element={<RequireAuth />}>
         <Route index element={<DashboardPage />} />
         <Route path="stats/:code" element={<StatsPage />} />
         <Route path="account" element={<AccountPage />} />

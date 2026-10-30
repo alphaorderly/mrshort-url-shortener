@@ -1,9 +1,4 @@
-import {
-  CODE_PATTERN,
-  generateCode,
-  isReservedCode,
-  normalizeCode,
-} from './code.util';
+import { CODE_PATTERN, generateCode, normalizeCode } from './code.util';
 
 describe('code.util', () => {
   it('지정한 길이의 영숫자 코드를 만든다', () => {
@@ -40,11 +35,15 @@ describe('code.util', () => {
     expect(CODE_PATTERN.test(code)).toBe(false);
   });
 
-  it('서비스 경로와 겹치는 주소는 대소문자와 관계없이 예약어이다', () => {
-    for (const code of ['api', 'API', 'App', 'assets']) {
-      expect(isReservedCode(code)).toBe(true);
-    }
-    expect(isReservedCode('my-app')).toBe(false);
+  it.each(['api', 'app', 'assets', 'login'])(
+    '%j 같은 서비스 이름도 짧은 주소로 쓸 수 있다',
+    (code) => {
+      expect(CODE_PATTERN.test(code)).toBe(true);
+    },
+  );
+
+  it('앱 경로의 접두사(~)는 짧은 주소로 쓸 수 없다', () => {
+    expect(CODE_PATTERN.test('~')).toBe(false);
   });
 
   it('유니코드를 NFC 로 정규화한다', () => {

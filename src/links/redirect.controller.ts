@@ -22,7 +22,7 @@ export class RedirectController {
 
     res.setHeader('Cache-Control', 'no-store');
     if (result.type === 'password') {
-      res.redirect(302, `/app/unlock/${encodeURIComponent(code)}`);
+      res.redirect(302, `/~/unlock/${encodeURIComponent(code)}`);
       return;
     }
     res.redirect(302, result.url);

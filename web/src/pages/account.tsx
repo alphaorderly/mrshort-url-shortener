@@ -146,7 +146,7 @@ function PasswordForm() {
 function InviteForm() {
   const invite = useCreateInvite();
 
-  const link = invite.data ? `${window.location.origin}/app/register/${invite.data.token}` : '';
+  const link = invite.data ? `${window.location.origin}/~/register/${invite.data.token}` : '';
 
   return (
     <div className="grid gap-4">

@@ -3,11 +3,11 @@ import { randomInt } from 'crypto';
 const ALPHABET =
   '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 
-/** 글자, 숫자, `_`, `-` 만 허용한다. 한글 같은 유니코드 글자도 쓸 수 있다. */
+/**
+ * 글자, 숫자, `_`, `-` 만 허용한다. 한글 같은 유니코드 글자도 쓸 수 있다.
+ * 앱(`/~`)과 API(`/api/...`)는 이 패턴과 겹칠 수 없는 경로에 있어서 예약어가 필요 없다.
+ */
 export const CODE_PATTERN = /^[\p{L}\p{N}_-]{1,100}$/u;
-
-/** 서비스 경로와 겹치는 주소는 짧은 주소로 쓸 수 없다. */
-const RESERVED_CODES = new Set(['api', 'app', 'assets']);
 
 export function generateCode(length = 7): string {
   let code = '';
@@ -15,10 +15,6 @@ export function generateCode(length = 7): string {
     code += ALPHABET[randomInt(ALPHABET.length)];
   }
   return code;
-}
-
-export function isReservedCode(code: string): boolean {
-  return RESERVED_CODES.has(code.toLowerCase());
 }
 
 export function normalizeCode(code: string): string {

@@ -17,7 +17,7 @@ export function LoginPage() {
   const [error, setError] = useState('');
 
   const requested = (location.state as { from?: string } | null)?.from;
-  const destination = requested?.startsWith('/app') ? requested : '/app';
+  const destination = requested?.startsWith('/~') ? requested : '/~';
 
   if (me) return <Navigate to={destination} replace />;
 

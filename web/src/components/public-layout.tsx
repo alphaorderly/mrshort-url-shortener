@@ -10,7 +10,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
   return (
     <>
       <header className="mx-auto w-full max-w-3xl px-4 py-5 sm:px-6">
-        <Link to="/app">
+        <Link to="/~">
           <Wordmark name={data?.serviceName ?? 'MrShort'} />
         </Link>
       </header>

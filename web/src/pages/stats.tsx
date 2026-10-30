@@ -21,7 +21,7 @@ import {
 function BackLink() {
   return (
     <Link
-      to="/app"
+      to="/~"
       className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-ink"
     >
       <ArrowLeft className="size-4" aria-hidden />
@@ -174,7 +174,7 @@ export function StatsPage() {
       <DeleteDialog
         link={deleting}
         onClose={() => setDeleting(null)}
-        onDeleted={() => navigate('/app', { replace: true })}
+        onDeleted={() => navigate('/~', { replace: true })}
       />
     </>
   );

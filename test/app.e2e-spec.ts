@@ -140,7 +140,7 @@ describe('MrShort API (e2e)', () => {
       ['javascript: 스킴', { url: 'javascript:alert(1)' }],
       ['ftp 스킴', { url: 'ftp://example.com/file' }],
       ['스킴 없음', { url: 'example.com' }],
-      ['예약된 주소', { url: 'https://example.com', code: 'api' }],
+      ['앱 경로 접두사', { url: 'https://example.com', code: '~' }],
       ['따옴표가 들어간 주소', { url: 'https://example.com', code: 'a"b' }],
       [
         '과거 만료 시각',
@@ -212,7 +212,7 @@ describe('MrShort API (e2e)', () => {
       await request(http)
         .get('/locked')
         .expect(302)
-        .expect('Location', '/app/unlock/locked');
+        .expect('Location', '/~/unlock/locked');
       await request(http)
         .post('/api/links/locked/unlock')
         .send({ password: 'wrong' })
@@ -415,15 +415,35 @@ describe('MrShort API (e2e)', () => {
   });
 
   describe('프론트엔드 호스팅', () => {
-    it('/app 하위 경로는 index.html 을 준다', async () => {
-      const res = await request(http).get('/app/stats/abc').expect(200);
+    it('/~ 하위 경로는 index.html 을 준다', async () => {
+      const res = await request(http).get('/~/stats/abc').expect(200);
       expect(res.text).toContain('<div id="root">');
-      await request(http).get('/assets/app.js').expect(200);
+      await request(http).get('/~').expect(200);
+      await request(http).get('/~/assets/app.js').expect(200);
     });
 
-    it('대표 주소(/)로 들어오면 /app 으로 보낸다', async () => {
-      await request(http).get('/').expect(302).expect('Location', '/app');
-      await request(http).head('/').expect(302).expect('Location', '/app');
+    it('대표 주소(/)로 들어오면 /~ 으로 보낸다', async () => {
+      await request(http).get('/').expect(302).expect('Location', '/~');
+      await request(http).head('/').expect(302).expect('Location', '/~');
+    });
+
+    it.each(['api', 'app', 'assets', 'login'])(
+      '%s 도 짧은 주소로 만들어 쓸 수 있다',
+      async (code) => {
+        await admin
+          .post('/api/links')
+          .send({ url: `https://example.com/${code}`, code })
+          .expect(201);
+        await request(http)
+          .get(`/${code}`)
+          .expect(302)
+          .expect('Location', `https://example.com/${code}`);
+      },
+    );
+
+    it('없는 짧은 주소는 /api 로 시작해도 앱 404 화면이다', async () => {
+      const res = await request(http).get('/apple').expect(404);
+      expect(res.headers['content-type']).toMatch(/html/);
     });
 
     it('/api 의 없는 경로는 JSON 404 이다', async () => {

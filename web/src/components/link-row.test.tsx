@@ -44,7 +44,7 @@ describe('LinkRow', () => {
     setup({ code: '팀핸드북' });
     expect(screen.getByRole('link', { name: '통계' })).toHaveAttribute(
       'href',
-      `/app/stats/${encodeURIComponent('팀핸드북')}`,
+      `/~/stats/${encodeURIComponent('팀핸드북')}`,
     );
   });
 

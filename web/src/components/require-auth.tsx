@@ -28,7 +28,7 @@ export function RequireAuth() {
   if (!me) {
     return (
       <Navigate
-        to="/app/login"
+        to="/~/login"
         replace
         state={{ from: `${location.pathname}${location.search}` }}
       />

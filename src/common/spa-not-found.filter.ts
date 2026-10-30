@@ -22,7 +22,7 @@ export class SpaNotFoundFilter implements ExceptionFilter {
 
     const isPage =
       (req.method === 'GET' || req.method === 'HEAD') &&
-      !req.path.startsWith('/api');
+      !req.path.startsWith('/api/');
 
     if (isPage && this.indexPath) {
       res.status(404).setHeader('Cache-Control', 'no-store');

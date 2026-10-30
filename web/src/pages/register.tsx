@@ -24,7 +24,7 @@ export function RegisterPage() {
   const [confirm, setConfirm] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  if (me) return <Navigate to="/app" replace />;
+  if (me) return <Navigate to="/~" replace />;
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -82,7 +82,7 @@ export function RegisterPage() {
         <p className="mt-2 text-muted">
           링크가 만료됐거나 이미 사용됐습니다. 초대한 사람에게 새 링크를 요청하세요.
         </p>
-        <Link to="/app/login" className={buttonVariants({ variant: 'secondary' }) + ' mt-6'}>
+        <Link to="/~/login" className={buttonVariants({ variant: 'secondary' }) + ' mt-6'}>
           로그인으로 이동
         </Link>
       </PublicLayout>

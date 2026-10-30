@@ -13,7 +13,7 @@ export function NotFoundPage() {
         주소가 잘못됐거나, 링크가 삭제됐거나, 만료됐을 수 있습니다. 링크를 보낸 사람에게
         주소를 다시 확인해 달라고 요청하세요.
       </p>
-      <Link to="/app" className={buttonVariants({ variant: 'secondary' }) + ' mt-8'}>
+      <Link to="/~" className={buttonVariants({ variant: 'secondary' }) + ' mt-8'}>
         홈으로
       </Link>
     </PublicLayout>

@@ -16,7 +16,7 @@
 | 위치 | 내용 |
 | ---- | ---- |
 | `src/` | NestJS 11 API 서버 (`/api/*`)와 짧은 주소 리다이렉트(`/:code`) |
-| `web/` | Vite + React 19 + Tailwind v4 프론트엔드 (`/app/*`) |
+| `web/` | Vite + React 19 + Tailwind v4 프론트엔드 (`/~/*`) |
 | `test/` | e2e 테스트 (실제 PostgreSQL/Redis 사용) |
 
 배포할 때는 프론트엔드를 빌드해서 API 서버가 함께 서비스하므로 **컨테이너는 하나**입니다.

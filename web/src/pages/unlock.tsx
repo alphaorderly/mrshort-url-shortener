@@ -64,7 +64,7 @@ export function UnlockPage() {
         </Button>
       </form>
 
-      <Link to="/app" className={buttonVariants({ variant: 'ghost', size: 'sm' }) + ' mt-6 -ml-3'}>
+      <Link to="/~" className={buttonVariants({ variant: 'ghost', size: 'sm' }) + ' mt-6 -ml-3'}>
         홈으로
       </Link>
     </PublicLayout>
