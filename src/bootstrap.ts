@@ -26,7 +26,7 @@ export function configureApp(
   );
   app.use(cookieParser());
   app.useBodyParser('json', { limit: '16kb' });
-  app.use(originGuard(config));
+  app.use(originGuard());
   app.useGlobalPipes(createValidationPipe());
 
   const indexPath = mountSpa(app, config.webDist);

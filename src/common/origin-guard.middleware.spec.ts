@@ -1,16 +1,8 @@
 import { Request, Response } from 'express';
-import { AppConfig } from '../config/app.config';
 import { originGuard } from './origin-guard.middleware';
 
-function run(
-  config: Partial<AppConfig>,
-  method: string,
-  headers: Record<string, string>,
-) {
-  const guard = originGuard({
-    allowedOrigins: [],
-    ...config,
-  } as AppConfig);
+function run(method: string, headers: Record<string, string>) {
+  const guard = originGuard();
   const lower = Object.fromEntries(
     Object.entries(headers).map(([k, v]) => [k.toLowerCase(), v]),
   );
@@ -29,7 +21,7 @@ function run(
 
 describe('originGuard', () => {
   it('읽기 요청은 항상 통과시킨다', () => {
-    const { next } = run({}, 'GET', {
+    const { next } = run('GET', {
       Origin: 'https://evil.example',
       Host: 'a.com',
     });
@@ -37,7 +29,7 @@ describe('originGuard', () => {
   });
 
   it('같은 호스트에서 온 쓰기 요청은 통과시킨다', () => {
-    const { next } = run({}, 'POST', {
+    const { next } = run('POST', {
       Origin: 'https://a.com',
       Host: 'a.com',
     });
@@ -45,7 +37,7 @@ describe('originGuard', () => {
   });
 
   it('다른 출처에서 온 쓰기 요청은 403 으로 막는다', () => {
-    const { next, status } = run({}, 'DELETE', {
+    const { next, status } = run('DELETE', {
       Origin: 'https://evil.example',
       Host: 'a.com',
     });
@@ -55,24 +47,17 @@ describe('originGuard', () => {
 
   it('Origin 이 "null" 이거나 깨져 있으면 막는다', () => {
     expect(
-      run({}, 'POST', { Origin: 'null', Host: 'a.com' }).status,
+      run('POST', { Origin: 'null', Host: 'a.com' }).status,
     ).toHaveBeenCalledWith(403);
   });
 
   it('Origin 이 없어도 cross-site 로 표시된 요청은 막는다', () => {
     expect(
-      run({}, 'POST', { 'Sec-Fetch-Site': 'cross-site', Host: 'a.com' }).status,
+      run('POST', { 'Sec-Fetch-Site': 'cross-site', Host: 'a.com' }).status,
     ).toHaveBeenCalledWith(403);
   });
 
   it('Origin 과 Sec-Fetch-Site 가 모두 없는 요청(curl 등)은 통과시킨다', () => {
-    expect(run({}, 'POST', { Host: 'a.com' }).next).toHaveBeenCalled();
-  });
-
-  it('ALLOWED_ORIGINS 의 호스트는 신뢰한다', () => {
-    const headers = { Origin: 'https://s.example.com', Host: 'internal:3000' };
-    expect(
-      run({ allowedOrigins: ['https://s.example.com'] }, 'POST', headers).next,
-    ).toHaveBeenCalled();
+    expect(run('POST', { Host: 'a.com' }).next).toHaveBeenCalled();
   });
 });

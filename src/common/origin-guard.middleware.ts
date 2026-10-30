@@ -1,5 +1,4 @@
 import { NextFunction, Request, RequestHandler, Response } from 'express';
-import { AppConfig } from '../config/app.config';
 
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
 
@@ -13,15 +12,9 @@ function hostOf(value: string): string | null {
 
 /**
  * 쿠키 기반 인증이므로 CSRF 를 막기 위해 상태를 바꾸는 요청의 출처를 검사한다.
- * 브라우저가 보내는 Origin(또는 Sec-Fetch-Site)이 같은 사이트가 아니면 거절한다.
+ * 브라우저가 보내는 Origin(또는 Sec-Fetch-Site)이 요청 Host 와 다르면 거절한다.
  */
-export function originGuard(config: AppConfig): RequestHandler {
-  const trusted = new Set<string>();
-  for (const origin of config.allowedOrigins) {
-    const host = hostOf(origin);
-    if (host) trusted.add(host);
-  }
-
+export function originGuard(): RequestHandler {
   const reject = (res: Response) => {
     res
       .status(403)
@@ -34,13 +27,7 @@ export function originGuard(config: AppConfig): RequestHandler {
     const origin = req.get('origin');
     if (origin) {
       const originHost = hostOf(origin);
-      const requestHost = req.get('host');
-      if (
-        !originHost ||
-        (originHost !== requestHost && !trusted.has(originHost))
-      ) {
-        return reject(res);
-      }
+      if (!originHost || originHost !== req.get('host')) return reject(res);
     } else if (req.get('sec-fetch-site') === 'cross-site') {
       return reject(res);
     }

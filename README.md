@@ -61,7 +61,6 @@
 | `APP_PORT`        | `6824`                    | 호스트에서 열 포트를 바꾸고 싶을 때 (컨테이너 내부 포트는 3000 고정)     |
 | `SERVICE_NAME`    | `MrShort`                 | 화면 왼쪽 위에 보일 이름을 바꾸고 싶을 때                                |
 | `SESSION_TTL_DAYS`| `30`                      | 로그인을 유지할 일수                                                     |
-| `ALLOWED_ORIGINS` | (비어 있음)               | 같은 사이트가 아닌 출처에서 오는 쓰기 요청을 허용할 때만 (쉼표로 구분)   |
 | `POSTGRES_USER`   | `mrshort`                 | PostgreSQL 사용자 이름                                                   |
 | `POSTGRES_DB`     | `urlshortener`            | PostgreSQL DB 이름                                                       |
 

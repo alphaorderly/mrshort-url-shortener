@@ -23,7 +23,6 @@ export interface AppConfig {
   /** 예전 SHA-256 해시를 검증하기 위한 솔트. 새 설치에서는 비어 있어도 된다. */
   legacyHashSalt: string;
   admin: { username: string; password: string } | null;
-  allowedOrigins: string[];
   webDist: string;
   db: DbConfig;
   redis: RedisConfig;
@@ -65,10 +64,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
       adminId && adminPassword
         ? { username: adminId, password: adminPassword }
         : null,
-    allowedOrigins: (env.ALLOWED_ORIGINS ?? '')
-      .split(',')
-      .map((origin) => origin.trim())
-      .filter(Boolean),
     webDist: env.WEB_DIST?.trim() || `${process.cwd()}/web/dist`,
     db: {
       host: required('DB_HOST'),

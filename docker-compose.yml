@@ -21,7 +21,6 @@ services:
       # 예전(SHA-256) 비밀번호 해시를 가진 기존 계정/링크가 있을 때만 필요합니다. 새 설치에서는 비워도 됩니다.
       HASH_SALT: ${HASH_SALT:-}
       SESSION_TTL_DAYS: ${SESSION_TTL_DAYS:-30}
-      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-}
       DB_HOST: postgres
       DB_PORT: 5432
       DB_USERNAME: ${POSTGRES_USER:-mrshort}
